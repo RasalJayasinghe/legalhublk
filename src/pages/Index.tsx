@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { FileText, ScrollText, Newspaper, Search, Loader2 } from "lucide-react";
 
@@ -88,6 +89,10 @@ const Index = () => {
   
   const [reloadKey, setReloadKey] = useState(0);
 
+  // "What's New" state
+  const [newIdSet, setNewIdSet] = useState<Set<string>>(new Set());
+  const [showOnlyNew, setShowOnlyNew] = useState(false);
+  const [showNewBanner, setShowNewBanner] = useState(false);
   // Fetch dataset from GitHub raw JSON (try working URL)
   useEffect(() => {
     let cancelled = false;
@@ -114,6 +119,30 @@ const Index = () => {
               normalized.forEach((d) => this.add(d));
             });
             setIdx(built);
+            // Compute "new since last visit"
+            try {
+              const currentIds = Array.from(new Set(normalized.map((d) => d.id)));
+              const storedRaw = localStorage.getItem("lh_seen_ids");
+              if (!storedRaw) {
+                localStorage.setItem("lh_seen_ids", JSON.stringify(currentIds));
+                setNewIdSet(new Set());
+                setShowNewBanner(false);
+              } else {
+                const storedArr: string[] = JSON.parse(storedRaw || "[]");
+                const storedSet = new Set<string>(storedArr);
+                const newIds = currentIds.filter((id) => !storedSet.has(id));
+                const newSet = new Set<string>(newIds);
+                setNewIdSet(newSet);
+                setShowNewBanner(newSet.size > 0);
+              }
+            } catch {
+              try {
+                const currentIds = Array.from(new Set(normalized.map((d) => d.id)));
+                localStorage.setItem("lh_seen_ids", JSON.stringify(currentIds));
+              } catch {}
+              setNewIdSet(new Set());
+              setShowNewBanner(false);
+            }
             setLoading(false);
           }
           return; // success
@@ -173,11 +202,16 @@ const Index = () => {
       base = base.filter((d) => d.date && !isAfter(parseISO(d.date), parseISO(toDate)));
     }
 
+    // Only show new items if toggled
+    if (showOnlyNew && newIdSet.size > 0) {
+      base = base.filter((d) => newIdSet.has(d.id));
+    }
+
     // Sort newest first if dates exist
     base = [...base].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
     return base;
-  }, [docs, idx, query, selectedTypes, fromDate, toDate]);
+  }, [docs, idx, query, selectedTypes, fromDate, toDate, showOnlyNew, newIdSet]);
 
   // Infinite scroll intersection observer (after filters computed)
   useEffect(() => {
@@ -218,6 +252,25 @@ const Index = () => {
       setOpeningId(null);
     }
   };
+  const handleViewNew = () => {
+    setShowOnlyNew(true);
+    setPage(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const handleMarkSeen = () => {
+    try {
+      const ids = docs.map((d) => d.id);
+      localStorage.setItem("lh_seen_ids", JSON.stringify(ids));
+    } catch {}
+    setNewIdSet(new Set());
+    setShowNewBanner(false);
+    setShowOnlyNew(false);
+    toast.success("Marked as seen");
+  };
+  const handleDismissNewBanner = () => {
+    setShowNewBanner(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -310,6 +363,27 @@ const Index = () => {
       </header>
 
       <main className="container py-8">
+        {showNewBanner && newIdSet.size > 0 && (
+          <div className="mb-4">
+            <Alert role="region" aria-live="polite" className="border-primary/30">
+              <AlertTitle>New documents available</AlertTitle>
+              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+                <span>{newIdSet.size} new document{newIdSet.size === 1 ? "" : "s"} since your last visit.</span>
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleViewNew}>
+                    View {newIdSet.size} new
+                  </Button>
+                  <Button variant="secondary" onClick={handleMarkSeen}>
+                    Mark as seen
+                  </Button>
+                  <Button variant="ghost" onClick={handleDismissNewBanner}>
+                    Dismiss
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
         <section aria-label="Search results" className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
@@ -320,9 +394,22 @@ const Index = () => {
               )}
             </p>
             {!loading && (
-              <Button variant="secondary" onClick={() => setPage(1)}>
-                Reset pagination
-              </Button>
+              <div className="flex items-center gap-2">
+                {newIdSet.size > 0 && (
+                  <Button
+                    variant={showOnlyNew ? "default" : "outline"}
+                    onClick={() => {
+                      setShowOnlyNew((v) => !v);
+                      setPage(1);
+                    }}
+                  >
+                    {showOnlyNew ? "Showing only new" : "Only new"}
+                  </Button>
+                )}
+                <Button variant="secondary" onClick={() => setPage(1)}>
+                  Reset pagination
+                </Button>
+              </div>
             )}
           </div>
           {error && (
@@ -370,7 +457,12 @@ const Index = () => {
                             <Icon className="h-5 w-5 text-accent-foreground" />
                           </div>
                           <div>
-                            <h2 className="font-semibold leading-snug">{d.title}</h2>
+                            <div className="flex items-center gap-2">
+                              <h2 className="font-semibold leading-snug">{d.title}</h2>
+                              {newIdSet.has(d.id) && (
+                                <Badge variant="secondary" className="shrink-0">New</Badge>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground mt-1">
                               <span>{d.type}</span>
                               {d.date && <span className="mx-2">•</span>}

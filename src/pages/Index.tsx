@@ -16,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ShareButton } from "@/components/share-button";
 import { DocumentSkeleton } from "@/components/document-skeleton";
+import { Brand } from "@/components/brand";
 import type { DateRange } from "react-day-picker";
 
 // Types
@@ -431,9 +432,8 @@ const Index = () => {
         <div className="container py-6 md:py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                LegalHub LK
-              </h1>
+              <Brand className="shrink-0" />
+              <h1 className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</h1>
               <p className="mt-2 text-muted-foreground max-w-2xl">
                 Search Sri Lanka legal documents instantly. Filter and open official PDFs.
               </p>
@@ -443,7 +443,7 @@ const Index = () => {
               <ThemeToggle />
             </div>
           </div>
-          
+
           <div className="grid gap-6 md:grid-cols-12 items-end">
             <div className="md:col-span-7">
               <div className="mt-4 relative">

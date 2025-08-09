@@ -130,6 +130,8 @@ const Index = () => {
             setPage(1);
             // Build lunr index
             const built = lunr(function () {
+              // @ts-ignore - runtime property on builder
+              this.metadataWhitelist = ["position"];
               this.ref("id");
               this.field("title");
               this.field("summary");
@@ -471,7 +473,7 @@ const Index = () => {
             </div>
             <div className="md:col-span-5">
               <div className="rounded-lg border bg-card p-3 shadow-sm">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <div>
                     <label className="text-sm text-muted-foreground">From</label>
                     <Input

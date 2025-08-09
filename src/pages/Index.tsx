@@ -6,8 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { FileText, ScrollText, Newspaper, Search } from "lucide-react";
+import { FileText, ScrollText, Newspaper, Search, SlidersHorizontal, Loader2 } from "lucide-react";
 
 // Types
 interface LegalDocRaw {
@@ -82,15 +83,19 @@ const Index = () => {
   const [page, setPage] = useState(1);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [idx, setIdx] = useState<lunr.Index | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // Fetch dataset from GitHub raw JSON (try multiple URLs)
+  // Fetch dataset from GitHub raw JSON (try working URL)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      setError(null);
       for (const url of DATA_URLS) {
         try {
-          const res = await fetch(url, { headers: { "Accept": "application/json" } });
+          const res = await fetch(url, { headers: { Accept: "application/json" } });
           if (!res.ok) continue;
           const data = await res.json();
           const arr: LegalDocRaw[] = Array.isArray(data) ? data : data?.items || data?.docs || [];
@@ -98,6 +103,7 @@ const Index = () => {
           const normalized = arr.map(normalize).filter(Boolean) as LegalDocNorm[];
           if (!cancelled) {
             setDocs(normalized);
+            setPage(1);
             // Build lunr index
             const built = lunr(function () {
               this.ref("id");
@@ -115,7 +121,9 @@ const Index = () => {
         }
       }
       if (!cancelled) {
-        toast.error("Failed to load dataset from GitHub");
+        const msg = "Failed to load dataset from GitHub";
+        setError(msg);
+        toast.error(msg);
         setDocs([]);
       }
       setLoading(false);
@@ -123,7 +131,7 @@ const Index = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   // Infinite scroll intersection observer will be set up after filters are computed
 
@@ -218,47 +226,74 @@ const Index = () => {
                 aria-label="Search legal documents"
               />
             </div>
+            <div className="md:hidden">
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters((s) => !s)}
+                aria-expanded={showFilters}
+                aria-controls="filters-panel"
+              >
+                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
+              </Button>
+            </div>
           </div>
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div className="md:col-span-2">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {DOC_TYPES.map((t) => (
-                  <label key={t} className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedTypes.includes(t)}
-                      onCheckedChange={() => {
-                        toggleType(t);
+          <div id="filters-panel" className={`mt-6 ${showFilters ? 'block' : 'hidden'} md:block`}>
+            <div className="rounded-lg border bg-card p-4 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="md:col-span-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {DOC_TYPES.map((t) => (
+                      <label key={t} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={selectedTypes.includes(t)}
+                          onCheckedChange={() => {
+                            toggleType(t);
+                            setPage(1);
+                          }}
+                          aria-label={`Filter ${t}`}
+                        />
+                        <span className="text-sm">{t}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-muted-foreground">From</label>
+                    <Input
+                      type="date"
+                      value={fromDate}
+                      onChange={(e) => {
+                        setFromDate(e.target.value);
                         setPage(1);
                       }}
-                      aria-label={`Filter ${t}`}
                     />
-                    <span className="text-sm">{t}</span>
-                  </label>
-                ))}
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">To</label>
+                    <Input
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => {
+                        setToDate(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm text-muted-foreground">From</label>
-                <Input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => {
-                    setFromDate(e.target.value);
+              <div className="mt-4 flex gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setSelectedTypes([]);
+                    setFromDate("");
+                    setToDate("");
                     setPage(1);
                   }}
-                />
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">To</label>
-                <Input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => {
-                    setToDate(e.target.value);
-                    setPage(1);
-                  }}
-                />
+                >
+                  Clear filters
+                </Button>
               </div>
             </div>
           </div>
@@ -268,8 +303,12 @@ const Index = () => {
       <main className="container py-8">
         <section aria-label="Search results" className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {loading ? "Loading dataset…" : `${filtered.length} result${filtered.length === 1 ? "" : "s"}`}
+            <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+              {loading ? (
+                <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading dataset…</span>
+              ) : (
+                `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
+              )}
             </p>
             {!loading && (
               <Button variant="secondary" onClick={() => setPage(1)}>
@@ -277,6 +316,17 @@ const Index = () => {
               </Button>
             )}
           </div>
+          {error && (
+            <div className="mt-4">
+              <Alert variant="destructive" role="alert">
+                <AlertTitle>Failed to load data</AlertTitle>
+                <AlertDescription className="flex items-start justify-between gap-4">
+                  <span>{error}</span>
+                  <Button variant="secondary" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
           <Separator />
 
           {loading && (

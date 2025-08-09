@@ -25,6 +25,7 @@ interface LegalDocNorm {
   type: string;
   summary: string;
   pdfUrl: string;
+  rawTypeName: string;
 }
 
 const DATA_URLS = [
@@ -58,7 +59,6 @@ function normalize(raw: LegalDocRaw, idx: number): LegalDocNorm | null {
     
     const displayType = typeMap[raw.doc_type_name] || raw.doc_type_name;
     const title = raw.description || 'Untitled';
-    const pdfUrl = `https://documents.gov.lk/${raw.doc_type_name}/${raw.id}.pdf`;
     
     return {
       id: raw.id,
@@ -66,7 +66,8 @@ function normalize(raw: LegalDocRaw, idx: number): LegalDocNorm | null {
       date: raw.date,
       type: displayType,
       summary: raw.description || '',
-      pdfUrl,
+      pdfUrl: "",
+      rawTypeName: raw.doc_type_name,
     };
   } catch {
     return null;
@@ -202,15 +203,35 @@ const Index = () => {
     );
   };
 
+  const [openingId, setOpeningId] = useState<string | null>(null);
+  const openPdf = async (d: LegalDocNorm) => {
+    try {
+      setOpeningId(d.id);
+      const year = d.date?.slice(0, 4);
+      if (!year) throw new Error('missing-year');
+      const metaUrl = `https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/${d.rawTypeName}/${year}/${d.id}/metadata.json`;
+      const res = await fetch(metaUrl, { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error('meta-not-found');
+      const meta = await res.json();
+      const m = meta?.lang_to_source_url || {};
+      const pdf: string | undefined = m.en || m.si || m.ta || Object.values(m)[0] as string | undefined;
+      if (!pdf) throw new Error('no-pdf');
+      window.open(pdf, '_blank', 'noopener');
+    } catch (e) {
+      toast.error('Could not open PDF. It may be temporarily unavailable.');
+    } finally {
+      setOpeningId(null);
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-gradient-to-b from-accent/20 to-background">
+      <header className="border-b bg-background">
         <div className="container py-10">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Sri Lanka Legal Documents Search
+            LegalHub LK
           </h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Fast, client-side search (Lunr.js) across Gazettes, Acts, and Bills. Filter by type and date, then open official PDFs.
+            Search Sri Lanka legal documents instantly. Filter and open official PDFs.
           </p>
           <div className="mt-6 flex items-center gap-3">
             <div className="relative w-full md:max-w-xl">
@@ -370,14 +391,18 @@ const Index = () => {
                           </div>
                         </div>
                         <div className="shrink-0">
-                          <a
-                            href={d.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <Button
+                            variant="default"
+                            onClick={() => openPdf(d)}
+                            disabled={openingId === d.id}
                             aria-label={`Open PDF for ${d.title}`}
                           >
-                            <Button variant="default">Open PDF</Button>
-                          </a>
+                            {openingId === d.id ? (
+                              <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Opening…</span>
+                            ) : (
+                              'Open PDF'
+                            )}
+                          </Button>
                         </div>
                       </div>
                       {d.summary && (

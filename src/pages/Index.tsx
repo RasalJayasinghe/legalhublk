@@ -431,24 +431,9 @@ const Index = () => {
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Calculate date range for stats
-  const statsDateRange = useMemo(() => {
-    if (docs.length === 0) return { min: "", max: "" };
-    const dates = docs.map(d => d.date).filter(Boolean).sort();
-    return {
-      min: dates[0]?.slice(0, 4) || "",
-      max: dates[dates.length - 1]?.slice(0, 4) || ""
-    };
-  }, [docs]);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Floating Trust Badge */}
-      <div className="fixed top-4 right-4 z-50 hidden sm:block">
-        <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 text-xs text-muted-foreground shadow-lg animate-fade-in">
-          Public. Free. Always updated.
-        </div>
-      </div>
 
       <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50">
         <div className="container max-w-7xl py-2">
@@ -674,30 +659,6 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Stats Bar - Desktop only, under header */}
-        <div className="hidden md:block border-b bg-muted/30">
-          <div className="container max-w-7xl py-3">
-            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📄</span>
-                <span className="font-medium">{docs.length.toLocaleString()} Documents</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📅</span>
-                <span className="font-medium">
-                  {statsDateRange.min && statsDateRange.max 
-                    ? `${statsDateRange.min}–${statsDateRange.max}`
-                    : "Loading..."
-                  }
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🌐</span>
-                <span className="font-medium">Sinhala / Tamil / English</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </header>
 
       <main className="container py-6">

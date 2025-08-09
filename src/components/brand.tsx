@@ -17,7 +17,7 @@ export function Brand({ className }: BrandProps) {
       <img
         src="/lovable-uploads/e189b7a3-97eb-4dfa-accc-b20ddedb2adb.png"
         alt="LegalHub LK logo"
-        className="block dark:hidden h-6 sm:h-8 md:h-10 lg:h-12 w-auto transition-all duration-300 group-hover:brightness-110"
+        className="block dark:hidden h-8 sm:h-10 md:h-12 lg:h-16 w-auto transition-all duration-300 group-hover:brightness-110"
         loading="eager"
         decoding="async"
       />
@@ -25,11 +25,10 @@ export function Brand({ className }: BrandProps) {
       <img
         src="/lovable-uploads/d05317ff-df46-48e0-b13d-5e3de44bc866.png"
         alt="LegalHub LK logo"
-        className="hidden dark:block h-6 sm:h-8 md:h-10 lg:h-12 w-auto transition-all duration-300 group-hover:brightness-110"
+        className="hidden dark:block h-8 sm:h-10 md:h-12 lg:h-16 w-auto transition-all duration-300 group-hover:brightness-110"
         loading="eager"
         decoding="async"
       />
-      <span className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</span>
     </Link>
   );
 }

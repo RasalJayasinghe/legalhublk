@@ -13,12 +13,22 @@ export function Brand({ className }: BrandProps) {
       aria-label="Go to LegalHub LK home"
       title="LegalHub LK"
    >
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">LH</span>
-        </div>
-        <span className="font-semibold text-foreground text-lg">LegalHub LK</span>
-      </div>
+      {/* Light mode logo */}
+      <img
+        src="/lovable-uploads/5a843890-1d9c-4621-a229-59967e3c1c65.png"
+        alt="LegalHub LK logo"
+        className="block dark:hidden h-8 md:h-9 w-auto"
+        loading="eager"
+        decoding="async"
+      />
+      {/* Dark mode logo */}
+      <img
+        src="/lovable-uploads/15eb43ee-5a02-44f3-97e5-4803d5e8aac5.png"
+        alt="LegalHub LK logo"
+        className="hidden dark:block h-8 md:h-9 w-auto"
+        loading="eager"
+        decoding="async"
+      />
       <span className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</span>
     </Link>
   );

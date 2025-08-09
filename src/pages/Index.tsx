@@ -93,6 +93,20 @@ const Index = () => {
   
   const [reloadKey, setReloadKey] = useState(0);
 
+  // Sort mode
+  const [sortMode, setSortMode] = useState<"newest" | "relevance">("newest");
+
+  // URL search params
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Search input ref and debounced query for URL sync
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [qSync, setQSync] = useState(query);
+  useEffect(() => {
+    const t = setTimeout(() => setQSync(query), 400);
+    return () => clearTimeout(t);
+  }, [query]);
+
   // "What's New" state
   const [newIdSet, setNewIdSet] = useState<Set<string>>(new Set());
   const [showOnlyNew, setShowOnlyNew] = useState(false);

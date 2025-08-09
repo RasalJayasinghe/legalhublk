@@ -428,10 +428,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container py-2 sm:py-4 md:py-6">
+      <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50">
+        <div className="container max-w-7xl py-2 sm:py-3 md:py-4">
           {/* Top Bar - Logo + Actions */}
-          <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
+          <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
             <div className="flex items-center gap-2">
               <Brand className="shrink-0" />
               <h1 className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</h1>
@@ -442,13 +442,14 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Tagline - Hidden on mobile */}
-          <p className="hidden sm:block text-muted-foreground max-w-2xl mb-4 text-sm md:text-base">
-            Search Sri Lanka legal documents instantly. Filter and open official PDFs.
+          {/* Tagline - Better mobile stacking */}
+          <p className="text-muted-foreground max-w-2xl mb-3 text-xs sm:text-sm md:text-base sm:block">
+            <span className="block sm:inline">Search Sri Lanka legal documents instantly.</span>
+            <span className="hidden sm:inline"> Filter and open official PDFs.</span>
           </p>
 
           {/* Search Section */}
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-2 sm:space-y-3">
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -460,13 +461,13 @@ const Index = () => {
                   setQuery(e.target.value);
                   setPage(1);
                 }}
-                className="pl-9 sm:pl-10 h-9 sm:h-10"
+                className="pl-9 sm:pl-10 h-8 sm:h-9"
                 aria-label="Search legal documents"
               />
             </div>
 
             {/* Filters Row */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               {/* Type Filters - Horizontal scroll on mobile */}
               <div className="flex-1">
                 <div className="overflow-x-auto pb-1">
@@ -487,7 +488,7 @@ const Index = () => {
                         key={t} 
                         value={t} 
                         aria-label={`Filter ${t}`}
-                        className="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
+                        className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
                       >
                         {t}
                       </ToggleGroupItem>
@@ -503,7 +504,7 @@ const Index = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full sm:w-auto justify-start text-left font-normal h-8 sm:h-9 px-2 sm:px-3"
+                      className="w-full sm:w-auto justify-start text-left font-normal h-7 sm:h-8 px-2 sm:px-3"
                     >
                       <CalendarIcon className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="text-xs sm:text-sm">

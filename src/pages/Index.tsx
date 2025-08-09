@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { FileText, ScrollText, Newspaper, Search, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { DateRange } from "react-day-picker";
 
 // Types
@@ -428,12 +429,17 @@ const Index = () => {
         <div className="container py-6 md:py-8">
           <div className="grid gap-6 md:grid-cols-12 items-end">
             <div className="md:col-span-7">
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                LegalHub LK
-              </h1>
-              <p className="mt-2 text-muted-foreground max-w-2xl">
-                Search Sri Lanka legal documents instantly. Filter and open official PDFs.
-              </p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                    LegalHub LK
+                  </h1>
+                  <p className="mt-2 text-muted-foreground max-w-2xl">
+                    Search Sri Lanka legal documents instantly. Filter and open official PDFs.
+                  </p>
+                </div>
+                <ThemeToggle />
+              </div>
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input

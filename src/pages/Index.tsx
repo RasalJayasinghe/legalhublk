@@ -18,6 +18,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { ShareButton } from "@/components/share-button";
 import { DocumentSkeleton } from "@/components/document-skeleton";
 import { Brand } from "@/components/brand";
+import { TypewriterInput } from "@/components/typewriter-input";
 import type { DateRange } from "react-day-picker";
 
 // Types
@@ -430,8 +431,25 @@ const Index = () => {
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+  // Calculate date range for stats
+  const statsDateRange = useMemo(() => {
+    if (docs.length === 0) return { min: "", max: "" };
+    const dates = docs.map(d => d.date).filter(Boolean).sort();
+    return {
+      min: dates[0]?.slice(0, 4) || "",
+      max: dates[dates.length - 1]?.slice(0, 4) || ""
+    };
+  }, [docs]);
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Floating Trust Badge */}
+      <div className="fixed top-4 right-4 z-50 hidden sm:block">
+        <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 text-xs text-muted-foreground shadow-lg animate-fade-in">
+          Public. Free. Always updated.
+        </div>
+      </div>
+
       <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50">
         <div className="container max-w-7xl py-2">
           {/* Mobile Header - Compact */}
@@ -457,20 +475,14 @@ const Index = () => {
             {showMobileFilters && (
               <div className="space-y-3 pb-2">
                 {/* Mobile Search Bar */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    ref={searchInputRef}
-                    placeholder="Search documents…"
-                    value={query}
-                    onChange={(e) => {
-                      setQuery(e.target.value);
-                      setPage(1);
-                    }}
-                    className="pl-9 h-9"
-                    aria-label="Search legal documents"
-                  />
-                </div>
+                <TypewriterInput
+                  value={query}
+                  onChange={setQuery}
+                  onPage={setPage}
+                  placeholder="Search documents…"
+                  className="h-9"
+                  inputRef={searchInputRef}
+                />
 
                 {/* Mobile Filters */}
                 <div className="space-y-2">
@@ -555,26 +567,20 @@ const Index = () => {
 
             {/* Desktop Tagline */}
             <p className="text-muted-foreground max-w-2xl mb-4 text-sm md:text-base">
-              Search Sri Lanka legal documents instantly. Filter and open official PDFs.
+              Every Gazette, Act & Bill — in one place.
             </p>
 
             {/* Desktop Search Section */}
             <div className="space-y-3">
               {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  ref={searchInputRef}
-                  placeholder="Search documents… (Press '/' to focus)"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="pl-10 h-9"
-                  aria-label="Search legal documents"
-                />
-              </div>
+              <TypewriterInput
+                value={query}
+                onChange={setQuery}
+                onPage={setPage}
+                placeholder="Search documents… (Press '/' to focus)"
+                className="h-9"
+                inputRef={searchInputRef}
+              />
 
               {/* Filters Row */}
               <div className="flex flex-row gap-3">
@@ -663,6 +669,31 @@ const Index = () => {
                 >
                   Latest →
                 </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Stats Bar - Desktop only, under header */}
+        <div className="hidden md:block border-b bg-muted/30">
+          <div className="container max-w-7xl py-3">
+            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📄</span>
+                <span className="font-medium">{docs.length.toLocaleString()} Documents</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📅</span>
+                <span className="font-medium">
+                  {statsDateRange.min && statsDateRange.max 
+                    ? `${statsDateRange.min}–${statsDateRange.max}`
+                    : "Loading..."
+                  }
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🌐</span>
+                <span className="font-medium">Sinhala / Tamil / English</span>
               </div>
             </div>
           </div>

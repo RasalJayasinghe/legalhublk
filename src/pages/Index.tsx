@@ -121,16 +121,34 @@ const Index = () => {
             setIdx(built);
             // Compute "new since last visit"
             try {
+              const params = new URLSearchParams(window.location.search);
+              const forceNew = params.get("forceNew");
+              const resetNew = params.get("resetNew");
               const currentIds = Array.from(new Set(normalized.map((d) => d.id)));
+              if (resetNew) {
+                try { localStorage.removeItem("lh_seen_ids"); } catch {}
+              }
               const storedRaw = localStorage.getItem("lh_seen_ids");
               if (!storedRaw) {
                 localStorage.setItem("lh_seen_ids", JSON.stringify(currentIds));
-                setNewIdSet(new Set());
-                setShowNewBanner(false);
+                // If forceNew present on first visit, fabricate new set for testing
+                if (forceNew) {
+                  const sample = currentIds.slice(0, Math.min(currentIds.length, 10));
+                  const newSet = new Set<string>(sample);
+                  setNewIdSet(newSet);
+                  setShowNewBanner(newSet.size > 0);
+                } else {
+                  setNewIdSet(new Set());
+                  setShowNewBanner(false);
+                }
               } else {
                 const storedArr: string[] = JSON.parse(storedRaw || "[]");
                 const storedSet = new Set<string>(storedArr);
-                const newIds = currentIds.filter((id) => !storedSet.has(id));
+                let newIds = currentIds.filter((id) => !storedSet.has(id));
+                // If forceNew param, override with a sample to demo
+                if (forceNew && newIds.length === 0) {
+                  newIds = currentIds.slice(0, Math.min(currentIds.length, 10));
+                }
                 const newSet = new Set<string>(newIds);
                 setNewIdSet(newSet);
                 setShowNewBanner(newSet.size > 0);

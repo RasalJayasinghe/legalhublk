@@ -111,6 +111,7 @@ const Index = () => {
   const [newIdSet, setNewIdSet] = useState<Set<string>>(new Set());
   const [showOnlyNew, setShowOnlyNew] = useState(false);
   const [showNewBanner, setShowNewBanner] = useState(false);
+  
   // Fetch dataset from GitHub raw JSON (try working URL)
   useEffect(() => {
     let cancelled = false;
@@ -312,9 +313,6 @@ const Index = () => {
     return { from, to } as DateRange;
   }, [fromDate, toDate]);
 
-  // Infinite scroll intersection observer will be set up after filters are computed
-
-
   // Filter + Search
   const filtered = useMemo(() => {
     let base: LegalDocNorm[] = docs;
@@ -385,7 +383,6 @@ const Index = () => {
 
   const visible = filtered.slice(0, page * PAGE_SIZE);
 
-
   const [openingId, setOpeningId] = useState<string | null>(null);
   const openPdf = async (d: LegalDocNorm) => {
     try {
@@ -440,7 +437,8 @@ const Index = () => {
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search titles, summaries, types…"
+                  ref={searchInputRef}
+                  placeholder="Search titles, summaries, types… (Press '/' to focus)"
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
@@ -473,42 +471,58 @@ const Index = () => {
             </div>
             <div className="md:col-span-5">
               <div className="rounded-lg border bg-card p-3 shadow-sm">
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="text-sm text-muted-foreground">From</label>
-                    <Input
-                      type="date"
-                      value={fromDate}
-                      onChange={(e) => {
-                        setFromDate(e.target.value);
-                        setPage(1);
-                      }}
-                    />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm text-muted-foreground">Date Range</label>
+                    <Link to="/latest" className="text-sm text-primary hover:underline">
+                      Latest →
+                    </Link>
                   </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">To</label>
-                    <Input
-                      type="date"
-                      value={toDate}
-                      onChange={(e) => {
-                        setToDate(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSelectedTypes([]);
-                      setFromDate("");
-                      setToDate("");
-                      setPage(1);
-                    }}
-                  >
-                    Clear filters
-                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "MMM dd, yyyy")} -{" "}
+                              {format(dateRange.to, "MMM dd, yyyy")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "MMM dd, yyyy")
+                          )
+                        ) : (
+                          <span>Pick a date range</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={(range) => {
+                          if (range?.from) {
+                            setFromDate(format(range.from, "yyyy-MM-dd"));
+                          } else {
+                            setFromDate("");
+                          }
+                          if (range?.to) {
+                            setToDate(format(range.to, "yyyy-MM-dd"));
+                          } else {
+                            setToDate("");
+                          }
+                          setPage(1);
+                        }}
+                        numberOfMonths={2}
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
@@ -516,10 +530,11 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container py-8">
-        {showNewBanner && newIdSet.size > 0 && (
-          <div className="mb-4">
-            <Alert role="region" aria-live="polite" className="border-primary/30">
+      <main className="container py-6">
+        <div className="grid gap-6">
+          {/* "What's New" Banner */}
+          {showNewBanner && newIdSet.size > 0 && (
+            <Alert className="border-primary">
               <AlertTitle>New documents available</AlertTitle>
               <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
                 <span>{newIdSet.size} new document{newIdSet.size === 1 ? "" : "s"} since your last visit.</span>
@@ -536,49 +551,71 @@ const Index = () => {
                 </div>
               </AlertDescription>
             </Alert>
-          </div>
-        )}
-        <section aria-label="Search results" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
-              {loading ? (
-                <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading dataset…</span>
-              ) : (
-                `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
-              )}
-            </p>
-            {!loading && (
-              <div className="flex items-center gap-2">
-                {newIdSet.size > 0 && (
-                  <Button
-                    variant={showOnlyNew ? "default" : "outline"}
-                    onClick={() => {
-                      setShowOnlyNew((v) => !v);
-                      setPage(1);
-                    }}
-                  >
-                    {showOnlyNew ? "Showing only new" : "Only new"}
-                  </Button>
-                )}
-                <Button variant="secondary" onClick={() => setPage(1)}>
-                  Reset pagination
-                </Button>
-              </div>
-            )}
-          </div>
-          {error && (
-            <div className="mt-4">
-              <Alert variant="destructive" role="alert">
-                <AlertTitle>Failed to load data</AlertTitle>
-                <AlertDescription className="flex items-start justify-between gap-4">
-                  <span>{error}</span>
-                  <Button variant="secondary" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button>
-                </AlertDescription>
-              </Alert>
-            </div>
           )}
+
+          {/* Results Count & Sort Toggle */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                {filtered.length} results
+                {(query || selectedTypes.length || fromDate || toDate) && " for filters"}
+              </p>
+              {!loading && docs.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setQuery("");
+                    setSelectedTypes([]);
+                    setFromDate("");
+                    setToDate("");
+                    setShowOnlyNew(false);
+                    setPage(1);
+                  }}
+                  className="h-8"
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {query.trim() && (
+                <ToggleGroup
+                  type="single"
+                  value={sortMode}
+                  onValueChange={(value) => {
+                    if (value) setSortMode(value as "newest" | "relevance");
+                  }}
+                  size="sm"
+                >
+                  <ToggleGroupItem value="newest" aria-label="Sort by newest">
+                    Newest
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="relevance" aria-label="Sort by relevance">
+                    Relevance
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
+              <Badge variant="outline">
+                Showing {visible.length} of {filtered.length}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive">
+              <AlertTitle>Failed to load data</AlertTitle>
+              <AlertDescription className="flex items-start justify-between gap-4">
+                <span>{error}</span>
+                <Button variant="secondary" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Separator />
 
+          {/* Loading State */}
           {loading && (
             <div className="grid gap-4 md:grid-cols-2">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -594,73 +631,81 @@ const Index = () => {
             </div>
           )}
 
+          {/* Empty State */}
           {!loading && visible.length === 0 && (
-            <p className="text-muted-foreground">No results. Try adjusting your search or filters.</p>
+            <p className="text-muted-foreground text-center py-12">
+              No results found. Try adjusting your search or filters.
+            </p>
           )}
 
+          {/* Document Grid */}
           <div className="grid gap-4 md:grid-cols-2">
             {visible.map((d) => {
               const Icon = typeIcon(d.type);
               return (
-                <article key={d.id} className="group">
-                  <Card className="transition-transform duration-200 group-hover:-translate-y-0.5">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center">
-                            <Icon className="h-5 w-5 text-accent-foreground" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h2 className="font-semibold leading-snug">{renderHighlighted(d.title, matchPositions.get(d.id)?.title)}</h2>
-                              {newIdSet.has(d.id) && (
-                                <Badge variant="secondary" className="shrink-0">New</Badge>
-                              )}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              <span>{d.type}</span>
-                              {d.date && <span className="mx-2">•</span>}
-                              {d.date && <time dateTime={d.date}>{format(parseISO(d.date), "PPP")}</time>}
-                            </div>
-                          </div>
+                <Card key={d.id} className="group hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center shrink-0">
+                        <Icon className="h-5 w-5 text-accent-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="space-y-2">
+                          <h3 className="font-medium leading-5 line-clamp-2">
+                            {renderHighlighted(d.title, matchPositions.get(d.id)?.title)}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {renderHighlighted(d.summary, matchPositions.get(d.id)?.summary)}
+                          </p>
                         </div>
-                        <div className="shrink-0">
-                          <Button
-                            variant="default"
-                            onClick={() => openPdf(d)}
-                            disabled={openingId === d.id}
-                            aria-label={`Open PDF for ${d.title}`}
-                          >
-                            {openingId === d.id ? (
-                              <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Opening…</span>
-                            ) : (
-                              'Open PDF'
-                            )}
-                          </Button>
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary">{d.type}</Badge>
+                            {newIdSet.has(d.id) && <Badge>New</Badge>}
+                          </div>
+                          <time className="text-xs text-muted-foreground">
+                            {d.date ? format(parseISO(d.date), "MMM dd, yyyy") : ""}
+                          </time>
                         </div>
                       </div>
-                      {d.summary && (
-                        <p className="text-sm text-muted-foreground mt-3">
-                          {d.summary}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </article>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                      <Button
+                        onClick={() => openPdf(d)}
+                        disabled={openingId === d.id}
+                        size="sm"
+                      >
+                        {openingId === d.id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Opening...
+                          </>
+                        ) : (
+                          'Open PDF'
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
 
-          {/* Infinite scroll sentinel */}
-          <div ref={sentinelRef} />
-        </section>
-      </main>
-
-      <footer className="border-t">
-        <div className="container py-6 text-xs text-muted-foreground">
-          Made with Love by Rasal J
+          {/* Load More / Infinite Scroll */}
+          {visible.length < filtered.length && (
+            <div className="text-center space-y-4">
+              <div ref={sentinelRef} className="h-4" />
+              <Button
+                variant="outline"
+                onClick={() => setPage(p => p + 1)}
+                className="min-w-[120px]"
+              >
+                Load more ({filtered.length - visible.length} remaining)
+              </Button>
+            </div>
+          )}
         </div>
-      </footer>
+      </main>
     </div>
   );
 };

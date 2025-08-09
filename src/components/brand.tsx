@@ -15,7 +15,7 @@ export function Brand({ className }: BrandProps) {
    >
       {/* Light mode logo */}
       <img
-        src="/lovable-uploads/c4f1588a-47d8-4988-a571-6553a705b914.png"
+        src="/lovable-uploads/e189b7a3-97eb-4dfa-accc-b20ddedb2adb.png"
         alt="LegalHub LK logo"
         className="block dark:hidden h-8 sm:h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 group-hover:brightness-110"
         loading="eager"

@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import lunr from "lunr";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
-import { FileText, ScrollText, Newspaper, Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { FileText, ScrollText, Newspaper, Search, Loader2 } from "lucide-react";
 
 // Types
 interface LegalDocRaw {
@@ -85,7 +85,7 @@ const Index = () => {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [idx, setIdx] = useState<lunr.Index | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
+  
   const [reloadKey, setReloadKey] = useState(0);
 
   // Fetch dataset from GitHub raw JSON (try working URL)
@@ -197,11 +197,6 @@ const Index = () => {
 
   const visible = filtered.slice(0, page * PAGE_SIZE);
 
-  const toggleType = (t: TypeFilter) => {
-    setSelectedTypes((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    );
-  };
 
   const [openingId, setOpeningId] = useState<string | null>(null);
   const openPdf = async (d: LegalDocNorm) => {
@@ -225,59 +220,52 @@ const Index = () => {
   };
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background">
-        <div className="container py-10">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            LegalHub LK
-          </h1>
-          <p className="mt-2 text-muted-foreground max-w-2xl">
-            Search Sri Lanka legal documents instantly. Filter and open official PDFs.
-          </p>
-          <div className="mt-6 flex items-center gap-3">
-            <div className="relative w-full md:max-w-xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Search titles, summaries, types…"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="pl-10"
-                aria-label="Search legal documents"
-              />
+      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container py-6 md:py-8">
+          <div className="grid gap-6 md:grid-cols-12 items-end">
+            <div className="md:col-span-7">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                LegalHub LK
+              </h1>
+              <p className="mt-2 text-muted-foreground max-w-2xl">
+                Search Sri Lanka legal documents instantly. Filter and open official PDFs.
+              </p>
+              <div className="mt-4 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search titles, summaries, types…"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="pl-10"
+                  aria-label="Search legal documents"
+                />
+              </div>
+              <div className="mt-3 overflow-x-auto">
+                <ToggleGroup
+                  type="multiple"
+                  variant="outline"
+                  size="sm"
+                  className="justify-start min-w-max"
+                  value={selectedTypes}
+                  onValueChange={(vals) => {
+                    setSelectedTypes(vals as TypeFilter[]);
+                    setPage(1);
+                  }}
+                  aria-label="Filter by document type"
+                >
+                  {DOC_TYPES.map((t) => (
+                    <ToggleGroupItem key={t} value={t} aria-label={`Filter ${t}`}>
+                      {t}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
             </div>
-            <div className="md:hidden">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters((s) => !s)}
-                aria-expanded={showFilters}
-                aria-controls="filters-panel"
-              >
-                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
-              </Button>
-            </div>
-          </div>
-          <div id="filters-panel" className={`mt-6 ${showFilters ? 'block' : 'hidden'} md:block`}>
-            <div className="rounded-lg border bg-card p-4 shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div className="md:col-span-2">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {DOC_TYPES.map((t) => (
-                      <label key={t} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={selectedTypes.includes(t)}
-                          onCheckedChange={() => {
-                            toggleType(t);
-                            setPage(1);
-                          }}
-                          aria-label={`Filter ${t}`}
-                        />
-                        <span className="text-sm">{t}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+            <div className="md:col-span-5">
+              <div className="rounded-lg border bg-card p-3 shadow-sm">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-muted-foreground">From</label>
@@ -302,19 +290,19 @@ const Index = () => {
                     />
                   </div>
                 </div>
-              </div>
-              <div className="mt-4 flex gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setSelectedTypes([]);
-                    setFromDate("");
-                    setToDate("");
-                    setPage(1);
-                  }}
-                >
-                  Clear filters
-                </Button>
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setSelectedTypes([]);
+                      setFromDate("");
+                      setToDate("");
+                      setPage(1);
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

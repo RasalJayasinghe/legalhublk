@@ -522,7 +522,7 @@ const Index = () => {
 
       <footer className="border-t">
         <div className="container py-6 text-xs text-muted-foreground">
-          Data source: GitHub nuuuwan/lk_legal_docs (raw JSON). This is a public, client-side search tool.
+          Made with Love by Rasal J
         </div>
       </footer>
     </div>

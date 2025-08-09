@@ -14,6 +14,8 @@ import { FileText, ScrollText, Newspaper, Search, Loader2, Calendar as CalendarI
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ShareButton } from "@/components/share-button";
+import { DocumentSkeleton } from "@/components/document-skeleton";
 import type { DateRange } from "react-day-picker";
 
 // Types
@@ -427,19 +429,23 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container py-6 md:py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                LegalHub LK
+              </h1>
+              <p className="mt-2 text-muted-foreground max-w-2xl">
+                Search Sri Lanka legal documents instantly. Filter and open official PDFs.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <ShareButton />
+              <ThemeToggle />
+            </div>
+          </div>
+          
           <div className="grid gap-6 md:grid-cols-12 items-end">
             <div className="md:col-span-7">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                    LegalHub LK
-                  </h1>
-                  <p className="mt-2 text-muted-foreground max-w-2xl">
-                    Search Sri Lanka legal documents instantly. Filter and open official PDFs.
-                  </p>
-                </div>
-                <ThemeToggle />
-              </div>
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -622,20 +628,7 @@ const Index = () => {
           <Separator />
 
           {/* Loading State */}
-          {loading && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-5 space-y-3">
-                    <div className="h-4 w-1/2 bg-muted rounded" />
-                    <div className="h-3 w-1/3 bg-muted rounded" />
-                    <div className="h-3 w-2/3 bg-muted rounded" />
-                    <div className="h-8 w-32 bg-muted rounded" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          {loading && <DocumentSkeleton count={8} />}
 
           {/* Empty State */}
           {!loading && visible.length === 0 && (
@@ -646,17 +639,21 @@ const Index = () => {
 
           {/* Document Grid */}
           <div className="grid gap-4 md:grid-cols-2">
-            {visible.map((d) => {
+            {visible.map((d, index) => {
               const Icon = typeIcon(d.type);
               return (
-                <Card key={d.id} className="group hover:shadow-md transition-shadow">
+                <Card 
+                  key={d.id} 
+                  className="group hover:shadow-md transition-all duration-200 hover:scale-[1.02] animate-fade-in"
+                  style={{ animationDelay: `${(index % PAGE_SIZE) * 50}ms` }}
+                >
                   <CardContent className="p-5">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center shrink-0">
-                        <Icon className="h-5 w-5 text-accent-foreground" />
+                    <div className="flex items-start gap-3 animate-scale-in">
+                      <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="space-y-2">
+                        <div className="space-y-2 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 100}ms` }}>
                           <h3 className="font-medium leading-5 line-clamp-2">
                             {renderHighlighted(d.title, matchPositions.get(d.id)?.title)}
                           </h3>
@@ -664,7 +661,7 @@ const Index = () => {
                             {renderHighlighted(d.summary, matchPositions.get(d.id)?.summary)}
                           </p>
                         </div>
-                        <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center justify-between mt-3 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 200}ms` }}>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">{d.type}</Badge>
                             {newIdSet.has(d.id) && <Badge>New</Badge>}
@@ -675,11 +672,12 @@ const Index = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-4 flex justify-end animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 300}ms` }}>
                       <Button
                         onClick={() => openPdf(d)}
                         disabled={openingId === d.id}
                         size="sm"
+                        className="transition-all duration-200 hover:scale-105"
                       >
                         {openingId === d.id ? (
                           <>

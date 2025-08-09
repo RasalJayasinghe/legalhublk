@@ -11,18 +11,10 @@ import { FileText, ScrollText, Newspaper, Search } from "lucide-react";
 
 // Types
 interface LegalDocRaw {
-  id?: string | number;
-  title?: string;
-  name?: string;
-  date?: string;
-  published_date?: string;
-  type?: string;
-  category?: string;
-  summary?: string;
-  description?: string;
-  pdf_url?: string;
-  url?: string;
-  pdf?: string;
+  doc_type_name: string;
+  id: string;
+  date: string;
+  description: string;
 }
 
 interface LegalDocNorm {
@@ -35,11 +27,7 @@ interface LegalDocNorm {
 }
 
 const DATA_URLS = [
-  // Try multiple likely raw JSON endpoints. If all fail, UI will show empty state.
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/refs/heads/main/data/index.json",
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/refs/heads/main/index.json",
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/index.json",
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/index.json",
+  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all.json",
 ];
 
 const PAGE_SIZE = 20;
@@ -55,32 +43,33 @@ function typeIcon(type: string) {
 }
 
 function normalize(raw: LegalDocRaw, idx: number): LegalDocNorm | null {
-  const title = raw.title || raw.name || "Untitled";
-  const dateStr = raw.date || raw.published_date || "";
-  const type = raw.type || raw.category || "Document";
-  const summary = raw.summary || raw.description || "";
-  const pdfUrl = raw.pdf_url || raw.pdf || raw.url || "";
-  const idVal = String(raw.id ?? `${dateStr}-${title}-${idx}`);
-
-  // Basic sanity: need at least title and a link
-  if (!title || !pdfUrl) return null;
-
-  // Normalize date
-  let normDate = "";
   try {
-    if (dateStr) normDate = parseISO(dateStr).toISOString().slice(0, 10);
+    const date = new Date(raw.date);
+    if (isNaN(date.getTime())) return null;
+    
+    // Map doc_type_name to display type
+    const typeMap: Record<string, string> = {
+      'acts': 'Act',
+      'bills': 'Bill',
+      'gazettes': 'Gazette',
+      'extra-gazettes': 'Extraordinary Gazette'
+    };
+    
+    const displayType = typeMap[raw.doc_type_name] || raw.doc_type_name;
+    const title = raw.description || 'Untitled';
+    const pdfUrl = `https://documents.gov.lk/${raw.doc_type_name}/${raw.id}.pdf`;
+    
+    return {
+      id: raw.id,
+      title,
+      date: raw.date,
+      type: displayType,
+      summary: raw.description || '',
+      pdfUrl,
+    };
   } catch {
-    normDate = "";
+    return null;
   }
-
-  return {
-    id: idVal,
-    title,
-    date: normDate,
-    type,
-    summary,
-    pdfUrl,
-  };
 }
 
 const Index = () => {

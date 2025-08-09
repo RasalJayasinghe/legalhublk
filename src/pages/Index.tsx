@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import lunr from "lunr";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
+import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,10 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { FileText, ScrollText, Newspaper, Search, Loader2 } from "lucide-react";
+import { FileText, ScrollText, Newspaper, Search, Loader2, Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import type { DateRange } from "react-day-picker";
 
 // Types
 interface LegalDocRaw {
@@ -181,12 +185,124 @@ const Index = () => {
     };
   }, [reloadKey]);
 
+  // URL: hydrate on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") || "";
+    const types = params.get("types");
+    const from = params.get("from") || "";
+    const to = params.get("to") || "";
+    const sort = params.get("sort") || "newest";
+    const onlyNew = params.get("onlyNew") === "1";
+    if (q) setQuery(q);
+    if (types) setSelectedTypes(types.split(",") as TypeFilter[]);
+    if (from) setFromDate(from);
+    if (to) setToDate(to);
+    setSortMode(sort === "relevance" ? "relevance" : "newest");
+    setShowOnlyNew(onlyNew);
+  }, []);
+
+  // URL: sync on change (debounced for query)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (qSync) params.set("q", qSync);
+    if (selectedTypes.length) params.set("types", selectedTypes.join(","));
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
+    if (sortMode !== "newest") params.set("sort", sortMode);
+    if (showOnlyNew) params.set("onlyNew", "1");
+    setSearchParams(params, { replace: true });
+  }, [qSync, selectedTypes, fromDate, toDate, sortMode, showOnlyNew, setSearchParams]);
+
+  // Keyboard "/" to focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // Build match position map for highlighting
+  const matchPositions = useMemo(() => {
+    const map = new Map<string, { title: [number, number][], summary: [number, number][] }>();
+    if (!idx || !query.trim()) return map;
+    try {
+      const results: any[] = idx.search(query.trim()) as any;
+      results.forEach((r: any) => {
+        const meta = r.matchData?.metadata ?? {};
+        const title: [number, number][] = [];
+        const summary: [number, number][] = [];
+        for (const term of Object.keys(meta)) {
+          const fields = meta[term] ?? {};
+          if (fields.title?.position) title.push(...fields.title.position);
+          if (fields.summary?.position) summary.push(...fields.summary.position);
+        }
+        if (title.length || summary.length) {
+          map.set(r.ref, { title, summary });
+        }
+      });
+    } catch {}
+    return map;
+  }, [idx, query]);
+
+  type Range = [number, number];
+  const mergeRanges = (ranges: Range[]) => {
+    if (!ranges || ranges.length === 0) return [] as Range[];
+    const sorted = [...ranges].sort((a, b) => a[0] - b[0]);
+    const merged: Range[] = [];
+    for (const [start, len] of sorted) {
+      if (!merged.length) {
+        merged.push([start, len]);
+      } else {
+        const last = merged[merged.length - 1];
+        const lastEnd = last[0] + last[1];
+        const end = start + len;
+        if (start <= lastEnd) {
+          last[1] = Math.max(lastEnd, end) - last[0];
+        } else {
+          merged.push([start, len]);
+        }
+      }
+    }
+    return merged;
+  };
+  const renderHighlighted = (text: string, ranges?: Range[]) => {
+    if (!ranges || ranges.length === 0) return text;
+    const merged = mergeRanges(ranges);
+    const out: JSX.Element[] = [];
+    let cursor = 0;
+    merged.forEach(([start, len], i) => {
+      if (start > cursor) out.push(<span key={`t-${i}-p`}>{text.slice(cursor, start)}</span>);
+      out.push(<mark key={`t-${i}-m`}>{text.slice(start, start + len)}</mark>);
+      cursor = start + len;
+    });
+    if (cursor < text.length) out.push(<span key="t-end">{text.slice(cursor)}</span>);
+    return <>{out}</>;
+  };
+
+  // Date range derived from strings
+  const dateRange = useMemo(() => {
+    const from = fromDate ? parseISO(fromDate) : undefined;
+    const to = toDate ? parseISO(toDate) : undefined;
+    if (!from && !to) return undefined;
+    return { from, to } as DateRange;
+  }, [fromDate, toDate]);
+
   // Infinite scroll intersection observer will be set up after filters are computed
 
 
   // Filter + Search
   const filtered = useMemo(() => {
     let base: LegalDocNorm[] = docs;
+    let usedLunrOrder = false;
 
     // Search with lunr if query
     if (idx && query.trim()) {
@@ -194,6 +310,7 @@ const Index = () => {
         const results = idx.search(query.trim());
         const map = new Map(docs.map((d) => [d.id, d] as const));
         base = results.map((r) => map.get(r.ref)).filter(Boolean) as LegalDocNorm[];
+        usedLunrOrder = true;
       } catch {
         // if lunr query fails (e.g., wildcard), fallback simple contains
         const q = query.toLowerCase();
@@ -202,6 +319,7 @@ const Index = () => {
           d.summary.toLowerCase().includes(q) ||
           d.type.toLowerCase().includes(q)
         );
+        usedLunrOrder = false;
       }
     }
 
@@ -225,11 +343,13 @@ const Index = () => {
       base = base.filter((d) => newIdSet.has(d.id));
     }
 
-    // Sort newest first if dates exist
-    base = [...base].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    // Sort
+    if (!(sortMode === "relevance" && query.trim() && usedLunrOrder)) {
+      base = [...base].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    }
 
     return base;
-  }, [docs, idx, query, selectedTypes, fromDate, toDate, showOnlyNew, newIdSet]);
+  }, [docs, idx, query, selectedTypes, fromDate, toDate, showOnlyNew, newIdSet, sortMode]);
 
   // Infinite scroll intersection observer (after filters computed)
   useEffect(() => {
@@ -476,7 +596,7 @@ const Index = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h2 className="font-semibold leading-snug">{d.title}</h2>
+                              <h2 className="font-semibold leading-snug">{renderHighlighted(d.title, matchPositions.get(d.id)?.title)}</h2>
                               {newIdSet.has(d.id) && (
                                 <Badge variant="secondary" className="shrink-0">New</Badge>
                               )}

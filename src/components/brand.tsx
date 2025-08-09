@@ -17,17 +17,19 @@ export function Brand({ className }: BrandProps) {
       <img
         src="/lovable-uploads/0d8e20ac-ad0d-43a0-87ca-664a5de4a417.png"
         alt="LegalHub LK logo"
-        className="block dark:hidden h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 group-hover:brightness-110"
+        className="block dark:hidden h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 group-hover:brightness-110 object-contain image-render-crisp"
         loading="eager"
         decoding="async"
+        style={{ imageRendering: "crisp-edges" }}
       />
       {/* Dark mode logo */}
       <img
         src="/lovable-uploads/c65fb381-20d7-43ea-bb0e-090e6eda9ff2.png"
         alt="LegalHub LK logo"
-        className="hidden dark:block h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 group-hover:brightness-110"
+        className="hidden dark:block h-10 md:h-12 lg:h-14 w-auto transition-all duration-300 group-hover:brightness-110 object-contain image-render-crisp"
         loading="eager"
         decoding="async"
+        style={{ imageRendering: "crisp-edges" }}
       />
       <span className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</span>
     </Link>

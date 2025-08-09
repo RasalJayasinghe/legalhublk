@@ -429,114 +429,134 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container py-6 md:py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
+        <div className="container py-2 sm:py-4 md:py-6">
+          {/* Top Bar - Logo + Actions */}
+          <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
+            <div className="flex items-center gap-2">
               <Brand className="shrink-0" />
               <h1 className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</h1>
-              <p className="mt-2 text-muted-foreground max-w-2xl">
-                Search Sri Lanka legal documents instantly. Filter and open official PDFs.
-              </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <ShareButton />
               <ThemeToggle />
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-12 items-end">
-            <div className="md:col-span-7">
-              <div className="mt-4 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  ref={searchInputRef}
-                  placeholder="Search titles, summaries, types… (Press '/' to focus)"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="pl-10"
-                  aria-label="Search legal documents"
-                />
-              </div>
-              <div className="mt-3 overflow-x-auto">
-                <ToggleGroup
-                  type="multiple"
-                  variant="outline"
-                  size="sm"
-                  className="justify-start min-w-max"
-                  value={selectedTypes}
-                  onValueChange={(vals) => {
-                    setSelectedTypes(vals as TypeFilter[]);
-                    setPage(1);
-                  }}
-                  aria-label="Filter by document type"
-                >
-                  {DOC_TYPES.map((t) => (
-                    <ToggleGroupItem key={t} value={t} aria-label={`Filter ${t}`}>
-                      {t}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
+          {/* Tagline - Hidden on mobile */}
+          <p className="hidden sm:block text-muted-foreground max-w-2xl mb-4 text-sm md:text-base">
+            Search Sri Lanka legal documents instantly. Filter and open official PDFs.
+          </p>
+
+          {/* Search Section */}
+          <div className="space-y-3 sm:space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                placeholder="Search documents… (Press '/' to focus)"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="pl-9 sm:pl-10 h-9 sm:h-10"
+                aria-label="Search legal documents"
+              />
             </div>
-            <div className="md:col-span-5">
-              <div className="rounded-lg border bg-card p-3 shadow-sm">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm text-muted-foreground">Date Range</label>
-                    <Link to="/latest" className="text-sm text-primary hover:underline">
-                      Latest →
-                    </Link>
-                  </div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
+
+            {/* Filters Row */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              {/* Type Filters - Horizontal scroll on mobile */}
+              <div className="flex-1">
+                <div className="overflow-x-auto pb-1">
+                  <ToggleGroup
+                    type="multiple"
+                    variant="outline"
+                    size="sm"
+                    className="justify-start min-w-max gap-1.5 sm:gap-2"
+                    value={selectedTypes}
+                    onValueChange={(vals) => {
+                      setSelectedTypes(vals as TypeFilter[]);
+                      setPage(1);
+                    }}
+                    aria-label="Filter by document type"
+                  >
+                    {DOC_TYPES.map((t) => (
+                      <ToggleGroupItem 
+                        key={t} 
+                        value={t} 
+                        aria-label={`Filter ${t}`}
+                        className="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {t}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+              </div>
+
+              {/* Date Range - Compact on mobile */}
+              <div className="sm:w-auto">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto justify-start text-left font-normal h-8 sm:h-9 px-2 sm:px-3"
+                    >
+                      <CalendarIcon className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm">
                         {dateRange?.from ? (
                           dateRange.to ? (
                             <>
-                              {format(dateRange.from, "MMM dd, yyyy")} -{" "}
-                              {format(dateRange.to, "MMM dd, yyyy")}
+                              {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd")}
                             </>
                           ) : (
                             format(dateRange.from, "MMM dd, yyyy")
                           )
                         ) : (
-                          <span>Pick a date range</span>
+                          <>
+                            <span className="hidden sm:inline">Pick date range</span>
+                            <span className="sm:hidden">Dates</span>
+                          </>
                         )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={(range) => {
-                          if (range?.from) {
-                            setFromDate(format(range.from, "yyyy-MM-dd"));
-                          } else {
-                            setFromDate("");
-                          }
-                          if (range?.to) {
-                            setToDate(format(range.to, "yyyy-MM-dd"));
-                          } else {
-                            setToDate("");
-                          }
-                          setPage(1);
-                        }}
-                        numberOfMonths={2}
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={(range) => {
+                        if (range?.from) {
+                          setFromDate(format(range.from, "yyyy-MM-dd"));
+                        } else {
+                          setFromDate("");
+                        }
+                        if (range?.to) {
+                          setToDate(format(range.to, "yyyy-MM-dd"));
+                        } else {
+                          setToDate("");
+                        }
+                        setPage(1);
+                      }}
+                      numberOfMonths={window.innerWidth < 640 ? 1 : 2}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
+
+              {/* Latest Link - Compact */}
+              <Link 
+                to="/latest" 
+                className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap self-center"
+              >
+                Latest →
+              </Link>
             </div>
           </div>
         </div>

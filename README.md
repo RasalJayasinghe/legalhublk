@@ -7,7 +7,7 @@ Built to help journalists, researchers, lawyers, students, and the public easily
 ---
 
 ## 🌐 Live Preview
-[https://legalhublk.lovable.app](https://legalhublk.lovable.app)
+[https://legalhublk.netlify.app/](https://legalhublk.netlify.app/)
 
 ---
 

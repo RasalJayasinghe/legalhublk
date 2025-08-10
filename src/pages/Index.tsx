@@ -451,10 +451,10 @@ const Index = () => {
       if (new Date() < expiryDate) return;
     }
     
-    // Show popup after 35 seconds
+    // Show popup after 20 seconds
     const timer = setTimeout(() => {
       setShowInterestPopup(true);
-    }, 35000);
+    }, 20000);
     
     return () => clearTimeout(timer);
   }, []);

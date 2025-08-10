@@ -57,6 +57,15 @@
   </head>
 
   <body>
+    <!-- Netlify static form for detection (hidden) -->
+    <form name="interest-validation" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="response" />
+      <input type="text" name="timestamp" />
+      <input type="text" name="timeOnSite" />
+      <input type="text" name="userAgent" />
+      <input type="text" name="currentPage" />
+    </form>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

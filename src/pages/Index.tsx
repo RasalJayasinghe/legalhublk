@@ -435,29 +435,51 @@ const Index = () => {
   // Interest popup state
   const [showInterestPopup, setShowInterestPopup] = useState(false);
   const [siteStartTime] = useState(Date.now());
+  const popupShownRef = useRef(false);
 
   // Interest popup logic
   useEffect(() => {
-    // Check if user has already responded
+    const params = new URLSearchParams(window.location.search);
+    const forceInterest = params.get("forceInterest") === "1";
+
     const response = localStorage.getItem("legalhub-interest-response");
     const expiry = localStorage.getItem("legalhub-interest-expiry");
-    
-    // Never show again if user said "never"
-    if (response === "never") return;
-    
-    // Check if temporary response has expired (30 days)
-    if (response && expiry) {
-      const expiryDate = new Date(expiry);
-      if (new Date() < expiryDate) return;
+    console.log("[InterestPopup] init", { forceInterest, response, expiry });
+
+    if (!forceInterest) {
+      // Never show again if user said "never"
+      if (response === "never") return;
+
+      // Respect temporary expiry (30 days)
+      if (response && expiry) {
+        const expiryDate = new Date(expiry);
+        if (new Date() < expiryDate) return;
+      }
     }
-    
-    // Show popup after 20 seconds
-    const timer = setTimeout(() => {
+
+    const showNow = () => {
+      if (popupShownRef.current) return;
+      popupShownRef.current = true;
+      console.log("[InterestPopup] showing popup");
       setShowInterestPopup(true);
-    }, 20000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+      window.removeEventListener("scroll", onScroll as any);
+    };
+
+    const onScroll = () => {
+      const seconds = Math.floor((Date.now() - siteStartTime) / 1000);
+      if (window.scrollY > 400 && seconds >= 8) {
+        showNow();
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true } as any);
+    const timer = window.setTimeout(showNow, 20000);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll as any);
+      clearTimeout(timer);
+    };
+  }, [siteStartTime]);
 
   const handleCloseInterestPopup = () => {
     setShowInterestPopup(false);

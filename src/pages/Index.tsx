@@ -19,6 +19,7 @@ import { ShareButton } from "@/components/share-button";
 import { DocumentSkeleton } from "@/components/document-skeleton";
 import { Brand } from "@/components/brand";
 import { TypewriterInput } from "@/components/typewriter-input";
+import { InterestPopup } from "@/components/interest-popup";
 import type { DateRange } from "react-day-picker";
 
 // Types
@@ -431,6 +432,41 @@ const Index = () => {
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+  // Interest popup state
+  const [showInterestPopup, setShowInterestPopup] = useState(false);
+  const [siteStartTime] = useState(Date.now());
+
+  // Interest popup logic
+  useEffect(() => {
+    // Check if user has already responded
+    const response = localStorage.getItem("legalhub-interest-response");
+    const expiry = localStorage.getItem("legalhub-interest-expiry");
+    
+    // Never show again if user said "never"
+    if (response === "never") return;
+    
+    // Check if temporary response has expired (30 days)
+    if (response && expiry) {
+      const expiryDate = new Date(expiry);
+      if (new Date() < expiryDate) return;
+    }
+    
+    // Show popup after 35 seconds
+    const timer = setTimeout(() => {
+      setShowInterestPopup(true);
+    }, 35000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleCloseInterestPopup = () => {
+    setShowInterestPopup(false);
+  };
+
+  const getTimeOnSite = () => {
+    return Math.floor((Date.now() - siteStartTime) / 1000);
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -829,6 +865,13 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      {/* Interest Validation Popup */}
+      <InterestPopup
+        isOpen={showInterestPopup}
+        onClose={handleCloseInterestPopup}
+        timeOnSite={getTimeOnSite()}
+      />
     </div>
   );
 };

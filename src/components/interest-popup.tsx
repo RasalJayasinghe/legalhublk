@@ -33,21 +33,16 @@ export const InterestPopup = ({ isOpen, onClose, timeOnSite }: InterestPopupProp
       localStorage.setItem("legalhub-interest-expiry", expiryDate.toISOString());
     }
 
-    // Prepare form data
-    const formData = new FormData();
-    formData.append("response", response);
-    formData.append("timestamp", new Date().toISOString());
-    formData.append("timeOnSite", timeOnSite.toString());
-    formData.append("userAgent", navigator.userAgent);
-    formData.append("currentPage", window.location.href);
-
     try {
+      console.log("Submitting form with data:", { response, timeOnSite });
+      
       // Submit to Netlify Forms
       const netlifyResponse = await fetch("/", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           "form-name": "interest-validation",
+          "bot-field": "",
           response,
           timestamp: new Date().toISOString(),
           timeOnSite: timeOnSite.toString(),
@@ -55,6 +50,8 @@ export const InterestPopup = ({ isOpen, onClose, timeOnSite }: InterestPopupProp
           currentPage: window.location.href,
         }).toString(),
       });
+
+      console.log("Form submission response:", netlifyResponse.status, netlifyResponse.statusText);
 
       if (netlifyResponse.ok) {
         toast.success("Thank you for your feedback!");
@@ -65,7 +62,8 @@ export const InterestPopup = ({ isOpen, onClose, timeOnSite }: InterestPopupProp
           });
         }
       } else {
-        throw new Error("Network response was not ok");
+        console.error("Form submission failed:", netlifyResponse.status, netlifyResponse.statusText);
+        throw new Error(`Form submission failed: ${netlifyResponse.status}`);
       }
     } catch (error) {
       console.error("Form submission error:", error);
@@ -99,6 +97,7 @@ export const InterestPopup = ({ isOpen, onClose, timeOnSite }: InterestPopupProp
           data-netlify-honeypot="bot-field"
         >
           <input type="hidden" name="form-name" value="interest-validation" />
+          <input type="hidden" name="bot-field" />
           <input type="text" name="response" />
           <input type="text" name="timestamp" />
           <input type="text" name="timeOnSite" />

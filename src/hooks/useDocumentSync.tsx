@@ -34,6 +34,10 @@ export interface SyncState {
     processed: number;
     filtered: number;
   };
+  // GitHub source info for proof of latest sync
+  gitCommitSha: string | null;
+  gitCommitDate: string | null;
+  gitCommitUrl: string | null;
 }
 
 const DATA_URLS = [
@@ -217,7 +221,10 @@ export function useDocumentSync() {
     loadingProgress: 0,
     newDocuments: [],
     hasNewDocuments: false,
-    documentStats: { fetched: 0, processed: 0, filtered: 0 }
+    documentStats: { fetched: 0, processed: 0, filtered: 0 },
+    gitCommitSha: null,
+    gitCommitDate: null,
+    gitCommitUrl: null
   });
 
   const intervalRef = useRef<NodeJS.Timeout>();
@@ -279,12 +286,14 @@ export function useDocumentSync() {
           }
         }));
 
-        if (currentCount > cachedDocs.length) {
-          toast.info(`${currentCount - cachedDocs.length} new documents available. Click refresh to update.`);
+        const hasRemoteNew = currentCount > cachedDocs.length;
+        if (hasRemoteNew) {
+          toast.info(`${currentCount - cachedDocs.length} new documents available. Syncing now…`);
+          // Continue to fetch fresh data below without returning
+        } else {
+          isLoadingRef.current = false;
+          return;
         }
-
-        isLoadingRef.current = false;
-        return;
       }
 
       // Fetch fresh data
@@ -292,8 +301,33 @@ export function useDocumentSync() {
       const seenIds = getSeenIds();
       const newDocs = docs.filter(doc => !seenIds.has(doc.id)).slice(0, 50);
 
+      // Fetch latest commit info for proof
+      let gitCommitSha: string | null = null;
+      let gitCommitUrl: string | null = null;
+      let gitCommitDate: string | null = null;
+      try {
+        const commitRes = await fetch(
+          'https://api.github.com/repos/nuuuwan/lk_legal_docs/commits?path=data/all.json&per_page=1',
+          { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' }
+        );
+        if (commitRes.ok) {
+          const arr = await commitRes.json();
+          const latest = Array.isArray(arr) ? arr[0] : null;
+          if (latest) {
+            gitCommitSha = latest.sha || null;
+            gitCommitUrl = latest.html_url || null;
+            gitCommitDate = latest.commit?.committer?.date || latest.commit?.author?.date || null;
+          }
+        }
+      } catch {}
+
       // Cache the results
       setCachedDocs(docs);
+
+      // Delta proof toast
+      const prevCount = cachedDocs.length;
+      const delta = docs.length - prevCount;
+      toast.success(`Synced from GitHub: ${prevCount.toLocaleString()} -> ${docs.length.toLocaleString()} (${delta >= 0 ? '+' : ''}${delta})${gitCommitSha ? ` @ ${gitCommitSha.slice(0,7)}` : ''}`);
 
       setState(prev => ({
         ...prev,
@@ -307,7 +341,10 @@ export function useDocumentSync() {
         hasNewDocuments: newDocs.length > 0,
         loadingStage: "Complete",
         loadingProgress: 100,
-        documentStats: stats
+        documentStats: stats,
+        gitCommitSha,
+        gitCommitDate,
+        gitCommitUrl
       }));
 
       if (newDocs.length > 0) {

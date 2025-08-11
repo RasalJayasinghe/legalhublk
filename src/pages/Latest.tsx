@@ -30,7 +30,10 @@ const Latest = () => {
     loadingStage,
     loadingProgress,
     refreshData,
-    markAllAsSeen
+    markAllAsSeen,
+    gitCommitSha,
+    gitCommitDate,
+    gitCommitUrl
   } = useDocumentSync();
 
   useEffect(() => {
@@ -59,6 +62,9 @@ const Latest = () => {
                 isLoading={loading}
                 documentStats={documentStats}
                 onRefresh={refreshData}
+                gitCommitSha={gitCommitSha}
+                gitCommitDate={gitCommitDate}
+                gitCommitUrl={gitCommitUrl}
               />
               <Button asChild variant="outline"><Link to="/">Back to search</Link></Button>
               <Button onClick={markAllAsSeen} variant="secondary">Mark all seen</Button>

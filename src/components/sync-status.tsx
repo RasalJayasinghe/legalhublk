@@ -20,6 +20,10 @@ interface SyncStatusProps {
   };
   onRefresh: () => void;
   className?: string;
+  // Optional GitHub proof fields
+  gitCommitSha?: string | null;
+  gitCommitDate?: string | null;
+  gitCommitUrl?: string | null;
 }
 
 export function SyncStatus({
@@ -30,7 +34,10 @@ export function SyncStatus({
   isLoading,
   documentStats,
   onRefresh,
-  className
+  className,
+  gitCommitSha,
+  gitCommitDate,
+  gitCommitUrl
 }: SyncStatusProps) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -103,17 +110,38 @@ export function SyncStatus({
                   </div>
                 </div>
 
-                {lastUpdated && (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Last Updated</span>
+                <div className="space-y-2">
+                  {lastUpdated && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Last Updated</span>
+                      </div>
+                      <p className="text-sm">
+                        {format(lastUpdated, 'PPp')}
+                      </p>
                     </div>
-                    <p className="text-sm">
-                      {format(lastUpdated, 'PPp')}
-                    </p>
-                  </div>
-                )}
+                  )}
+
+                  {gitCommitSha && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground">GitHub Source</span>
+                      </div>
+                      <p className="text-sm">
+                        <a
+                          href={gitCommitUrl || (gitCommitSha ? `https://github.com/nuuuwan/lk_legal_docs/commit/${gitCommitSha}` : '#')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          Commit {gitCommitSha.slice(0,7)}
+                        </a>
+                        {gitCommitDate ? ` · ${format(new Date(gitCommitDate), 'PPp')}` : null}
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Processing Stats */}
                 <div className="space-y-2 pt-2 border-t">

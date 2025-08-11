@@ -61,7 +61,10 @@ const Index = () => {
     hasNewDocuments,
     documentStats,
     refreshData,
-    markAllAsSeen
+    markAllAsSeen,
+    gitCommitSha,
+    gitCommitDate,
+    gitCommitUrl
   } = syncHook;
   
   const totalDocuments = docs.length;
@@ -368,6 +371,9 @@ const Index = () => {
                   isLoading={loading}
                   documentStats={documentStats}
                   onRefresh={refreshData}
+                  gitCommitSha={gitCommitSha}
+                  gitCommitDate={gitCommitDate}
+                  gitCommitUrl={gitCommitUrl}
                 />
                 <Button
                   variant="ghost"
@@ -480,6 +486,9 @@ const Index = () => {
                   isLoading={loading}
                   documentStats={documentStats}
                   onRefresh={refreshData}
+                  gitCommitSha={gitCommitSha}
+                  gitCommitDate={gitCommitDate}
+                  gitCommitUrl={gitCommitUrl}
                 />
                 <ShareButton />
                 <ThemeToggle />

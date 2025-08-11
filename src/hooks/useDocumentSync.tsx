@@ -324,10 +324,10 @@ export function useDocumentSync() {
       // Cache the results
       setCachedDocs(docs);
 
-      // Delta proof toast
+      // Sync complete toast (generic, no provider names)
       const prevCount = cachedDocs.length;
       const delta = docs.length - prevCount;
-      toast.success(`Synced from GitHub: ${prevCount.toLocaleString()} -> ${docs.length.toLocaleString()} (${delta >= 0 ? '+' : ''}${delta})${gitCommitSha ? ` @ ${gitCommitSha.slice(0,7)}` : ''}`);
+      toast.success(`Synced latest documents: ${prevCount.toLocaleString()} -> ${docs.length.toLocaleString()} (${delta >= 0 ? '+' : ''}${delta})`);
 
       setState(prev => ({
         ...prev,
@@ -335,7 +335,7 @@ export function useDocumentSync() {
         loading: false,
         error: null,
         lastUpdated: now,
-        totalDocuments: docs.length,
+        totalDocuments: stats.fetched,
         processedDocuments: docs.length,
         newDocuments: newDocs,
         hasNewDocuments: newDocs.length > 0,

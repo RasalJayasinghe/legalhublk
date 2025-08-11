@@ -61,13 +61,10 @@ const Index = () => {
     hasNewDocuments,
     documentStats,
     refreshData,
-    markAllAsSeen,
-    gitCommitSha,
-    gitCommitDate,
-    gitCommitUrl
+    markAllAsSeen
   } = syncHook;
   
-  const totalDocuments = docs.length;
+  const totalDocuments = syncHook.totalDocuments || docs.length;
   const processedDocuments = docs.length;
   const loadingStage = progressiveLoader.loading ? `Progressive Loading... ${progressiveLoader.processedCount} docs` : syncHook.loadingStage;
   const loadingProgress = progressiveLoader.loading ? progressiveLoader.totalProgress : syncHook.loadingProgress;
@@ -371,9 +368,6 @@ const Index = () => {
                   isLoading={loading}
                   documentStats={documentStats}
                   onRefresh={refreshData}
-                  gitCommitSha={gitCommitSha}
-                  gitCommitDate={gitCommitDate}
-                  gitCommitUrl={gitCommitUrl}
                 />
                 <Button
                   variant="ghost"
@@ -486,9 +480,6 @@ const Index = () => {
                   isLoading={loading}
                   documentStats={documentStats}
                   onRefresh={refreshData}
-                  gitCommitSha={gitCommitSha}
-                  gitCommitDate={gitCommitDate}
-                  gitCommitUrl={gitCommitUrl}
                 />
                 <ShareButton />
                 <ThemeToggle />

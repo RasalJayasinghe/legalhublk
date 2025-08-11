@@ -21,29 +21,10 @@ import { LoadingProgress } from "@/components/loading-progress";
 import { Brand } from "@/components/brand";
 import { TypewriterInput } from "@/components/typewriter-input";
 import { InterestPopup } from "@/components/interest-popup";
+import { SyncStatus } from "@/components/sync-status";
+import { NewDocumentsBanner } from "@/components/new-documents-banner";
+import { useDocumentSync, type LegalDocNorm } from "@/hooks/useDocumentSync";
 import type { DateRange } from "react-day-picker";
-
-// Types
-interface LegalDocRaw {
-  doc_type_name: string;
-  id: string;
-  date: string;
-  description: string;
-}
-
-interface LegalDocNorm {
-  id: string;
-  title: string;
-  date: string; // ISO yyyy-mm-dd
-  type: string;
-  summary: string;
-  pdfUrl: string;
-  rawTypeName: string;
-}
-
-const DATA_URLS = [
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all.json",
-];
 
 const PAGE_SIZE = 20;
 const DOC_TYPES = ["Gazette", "Extraordinary Gazette", "Act", "Bill"] as const;
@@ -57,44 +38,24 @@ function typeIcon(type: string) {
   return Newspaper;
 }
 
-function normalize(raw: LegalDocRaw, idx: number): LegalDocNorm | null {
-  try {
-    const date = new Date(raw.date);
-    if (isNaN(date.getTime())) return null;
-    
-    // Map doc_type_name to display type
-    const typeMap: Record<string, string> = {
-      'acts': 'Act',
-      'bills': 'Bill',
-      'gazettes': 'Gazette',
-      'extra-gazettes': 'Extraordinary Gazette'
-    };
-    
-    const displayType = typeMap[raw.doc_type_name] || raw.doc_type_name;
-    const title = raw.description || 'Untitled';
-    
-    return {
-      id: raw.id,
-      title,
-      date: raw.date,
-      type: displayType,
-      summary: raw.description || '',
-      pdfUrl: "",
-      rawTypeName: raw.doc_type_name,
-    };
-  } catch {
-    return null;
-  }
-}
-
 const Index = () => {
-const [docs, setDocs] = useState<LegalDocNorm[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingStage, setLoadingStage] = useState("");
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [totalDocuments, setTotalDocuments] = useState(0);
-  const [processedDocuments, setProcessedDocuments] = useState(0);
+  // Use the new document sync hook
+  const {
+    docs,
+    loading,
+    error,
+    lastUpdated,
+    totalDocuments,
+    processedDocuments,
+    loadingStage,
+    loadingProgress,
+    newDocuments,
+    hasNewDocuments,
+    documentStats,
+    refreshData,
+    markAllAsSeen
+  } = useDocumentSync();
+
   const [query, setQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<TypeFilter[]>([]);
   const [fromDate, setFromDate] = useState<string>("");
@@ -102,10 +63,9 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
   const [page, setPage] = useState(1);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [idx, setIdx] = useState<lunr.Index | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<"all" | "this-year" | "last-year" | "last-2-years">("all");
-  
-  const [reloadKey, setReloadKey] = useState(0);
+  const [showNewBanner, setShowNewBanner] = useState(true);
+  const [showOnlyNew, setShowOnlyNew] = useState(false);
 
   // Sort mode
   const [sortMode, setSortMode] = useState<"newest" | "relevance">("newest");
@@ -121,139 +81,21 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     return () => clearTimeout(t);
   }, [query]);
 
-  // "What's New" state
-  const [newIdSet, setNewIdSet] = useState<Set<string>>(new Set());
-  const [showOnlyNew, setShowOnlyNew] = useState(false);
-  const [showNewBanner, setShowNewBanner] = useState(false);
-  
-  // Fetch dataset from GitHub raw JSON (try working URL)
+  // Build lunr search index when docs change
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      setLoadingStage("Fetching latest documents...");
-      setLoadingProgress(10);
-      
-      for (const url of DATA_URLS) {
-        try {
-          const cacheBustUrl = `${url}?t=${Date.now()}`;
-          const res = await fetch(cacheBustUrl, {
-            headers: {
-              Accept: "application/json",
-            },
-            cache: "no-store",
-            mode: "cors",
-          });
-          if (!res.ok) continue;
-          
-          setLoadingStage("Processing document data...");
-          setLoadingProgress(30);
-          
-          const data = await res.json();
-          const arr: LegalDocRaw[] = Array.isArray(data) ? data : data?.items || data?.docs || [];
-          if (!Array.isArray(arr) || arr.length === 0) continue;
-          
-          setTotalDocuments(arr.length);
-          setLoadingStage(`Processing ${arr.length.toLocaleString()} documents...`);
-          setLoadingProgress(50);
-          
-          // Process documents with progress updates
-          const normalized: LegalDocNorm[] = [];
-          for (let i = 0; i < arr.length; i++) {
-            const doc = normalize(arr[i], i);
-            if (doc) normalized.push(doc);
-            
-            // Update progress every 1000 documents
-            if (i % 1000 === 0) {
-              setProcessedDocuments(i);
-              setLoadingProgress(50 + (i / arr.length) * 30);
-            }
-          }
-          
-          if (!cancelled) {
-            setDocs(normalized);
-            setProcessedDocuments(normalized.length);
-            setPage(1);
-            setLastUpdated(new Date());
-            
-            setLoadingStage("Building search index...");
-            setLoadingProgress(85);
-            
-            // Build lunr index
-            const built = lunr(function () {
-              // @ts-ignore - runtime property on builder
-              this.metadataWhitelist = ["position"];
-              this.ref("id");
-              this.field("title");
-              this.field("summary");
-              this.field("type");
-              normalized.forEach((d) => this.add(d));
-            });
-            setIdx(built);
-            // Compute "new since last visit"
-            try {
-              const params = new URLSearchParams(window.location.search);
-              const forceNew = params.get("forceNew");
-              const resetNew = params.get("resetNew");
-              const currentIds = Array.from(new Set(normalized.map((d) => d.id)));
-              if (resetNew) {
-                try { localStorage.removeItem("lh_seen_ids"); } catch {}
-              }
-              const storedRaw = localStorage.getItem("lh_seen_ids");
-              if (!storedRaw) {
-                localStorage.setItem("lh_seen_ids", JSON.stringify(currentIds));
-                // If forceNew present on first visit, fabricate new set for testing
-                if (forceNew) {
-                  const sample = currentIds.slice(0, Math.min(currentIds.length, 10));
-                  const newSet = new Set<string>(sample);
-                  setNewIdSet(newSet);
-                  setShowNewBanner(newSet.size > 0);
-                } else {
-                  setNewIdSet(new Set());
-                  setShowNewBanner(false);
-                }
-              } else {
-                const storedArr: string[] = JSON.parse(storedRaw || "[]");
-                const storedSet = new Set<string>(storedArr);
-                let newIds = currentIds.filter((id) => !storedSet.has(id));
-                // If forceNew param, override with a sample to demo
-                if (forceNew && newIds.length === 0) {
-                  newIds = currentIds.slice(0, Math.min(currentIds.length, 10));
-                }
-                const newSet = new Set<string>(newIds);
-                setNewIdSet(newSet);
-                setShowNewBanner(newSet.size > 0);
-              }
-            } catch {
-              try {
-                const currentIds = Array.from(new Set(normalized.map((d) => d.id)));
-                localStorage.setItem("lh_seen_ids", JSON.stringify(currentIds));
-              } catch {}
-              setNewIdSet(new Set());
-              setShowNewBanner(false);
-            }
-            setLoadingStage("Ready!");
-            setLoadingProgress(100);
-            setTimeout(() => setLoading(false), 500);
-          }
-          return; // success
-        } catch (e) {
-          // try next URL
-        }
-      }
-      if (!cancelled) {
-        const msg = "Failed to load dataset from GitHub";
-        setError(msg);
-        toast.error(msg);
-        setDocs([]);
-      }
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [reloadKey]);
+    if (docs.length > 0) {
+      const built = lunr(function () {
+        // @ts-ignore - runtime property on builder
+        this.metadataWhitelist = ["position"];
+        this.ref("id");
+        this.field("title");
+        this.field("summary");
+        this.field("type");
+        docs.forEach((d) => this.add(d));
+      });
+      setIdx(built);
+    }
+  }, [docs]);
 
   // URL: hydrate on mount
   useEffect(() => {
@@ -344,6 +186,7 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     }
     return merged;
   };
+
   const renderHighlighted = (text: string, ranges?: Range[]) => {
     if (!ranges || ranges.length === 0) return text;
     const merged = mergeRanges(ranges);
@@ -406,8 +249,9 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     }
 
     // Only show new items if toggled
-    if (showOnlyNew && newIdSet.size > 0) {
-      base = base.filter((d) => newIdSet.has(d.id));
+    if (showOnlyNew && newDocuments.length > 0) {
+      const newIds = new Set(newDocuments.map(d => d.id));
+      base = base.filter((d) => newIds.has(d.id));
     }
 
     // Sort
@@ -416,7 +260,7 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     }
 
     return base;
-  }, [docs, idx, query, selectedTypes, fromDate, toDate, showOnlyNew, newIdSet, sortMode]);
+  }, [docs, idx, query, selectedTypes, fromDate, toDate, showOnlyNew, newDocuments, sortMode]);
 
   // Infinite scroll intersection observer (after filters computed)
   useEffect(() => {
@@ -432,7 +276,7 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [page, filtered.length, sentinelRef.current]);
+  }, [page, filtered.length]);
 
   const visible = filtered.slice(0, page * PAGE_SIZE);
 
@@ -456,21 +300,13 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
       setOpeningId(null);
     }
   };
+
   const handleViewNew = () => {
     setShowOnlyNew(true);
     setPage(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const handleMarkSeen = () => {
-    try {
-      const ids = docs.map((d) => d.id);
-      localStorage.setItem("lh_seen_ids", JSON.stringify(ids));
-    } catch {}
-    setNewIdSet(new Set());
-    setShowNewBanner(false);
-    setShowOnlyNew(false);
-    toast.success("Marked as seen");
-  };
+
   const handleDismissNewBanner = () => {
     setShowNewBanner(false);
   };
@@ -489,7 +325,6 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
 
     const response = localStorage.getItem("legalhub-interest-response");
     const expiry = localStorage.getItem("legalhub-interest-expiry");
-    console.log("[InterestPopup] init", { forceInterest, response, expiry });
 
     if (!forceInterest) {
       // Never show again if user said "never"
@@ -505,7 +340,6 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     const showNow = () => {
       if (popupShownRef.current) return;
       popupShownRef.current = true;
-      console.log("[InterestPopup] showing popup");
       setShowInterestPopup(true);
       window.removeEventListener("scroll", onScroll as any);
     };
@@ -534,10 +368,8 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
     return Math.floor((Date.now() - siteStartTime) / 1000);
   };
 
-
   return (
     <div className="min-h-screen bg-background">
-
       <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50">
         <div className="container max-w-7xl py-2">
           {/* Mobile Header - Compact */}
@@ -545,6 +377,15 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
             <div className="flex items-center justify-between mb-2">
               <Brand className="shrink-0" />
               <div className="flex items-center gap-2">
+                <SyncStatus
+                  lastUpdated={lastUpdated}
+                  totalDocuments={totalDocuments}
+                  hasNewDocuments={hasNewDocuments}
+                  newDocumentsCount={newDocuments.length}
+                  isLoading={loading}
+                  documentStats={documentStats}
+                  onRefresh={refreshData}
+                />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -648,6 +489,15 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
                 <h1 className="sr-only">LegalHub LK — Sri Lankan Legal Document Search</h1>
               </div>
               <div className="flex items-center gap-2">
+                <SyncStatus
+                  lastUpdated={lastUpdated}
+                  totalDocuments={totalDocuments}
+                  hasNewDocuments={hasNewDocuments}
+                  newDocumentsCount={newDocuments.length}
+                  isLoading={loading}
+                  documentStats={documentStats}
+                  onRefresh={refreshData}
+                />
                 <ShareButton />
                 <ThemeToggle />
               </div>
@@ -761,31 +611,17 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
             </div>
           </div>
         </div>
-        
       </header>
 
       <main className="container py-6">
         <div className="grid gap-6">
-          {/* "What's New" Banner */}
-          {showNewBanner && newIdSet.size > 0 && (
-            <Alert className="border-primary">
-              <AlertTitle>New documents available</AlertTitle>
-              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                <span>{newIdSet.size} new document{newIdSet.size === 1 ? "" : "s"} since your last visit.</span>
-                <div className="flex items-center gap-2">
-                  <Button onClick={handleViewNew}>
-                    View {newIdSet.size} new
-                  </Button>
-                  <Button variant="secondary" onClick={handleMarkSeen}>
-                    Mark as seen
-                  </Button>
-                  <Button variant="ghost" onClick={handleDismissNewBanner}>
-                    Dismiss
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
+          {/* New Documents Banner */}
+          <NewDocumentsBanner
+            newDocumentsCount={newDocuments.length}
+            onDismiss={handleDismissNewBanner}
+            onMarkAllSeen={markAllAsSeen}
+            visible={showNewBanner && hasNewDocuments}
+          />
 
           {/* Results Count & Sort Toggle */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -793,22 +629,9 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
               <p className="text-sm text-muted-foreground">
                 {filtered.length} results
                 {(query || selectedTypes.length || fromDate || toDate) && " for filters"}
-                {lastUpdated && (
-                  <span className="text-xs">
-                    • Updated {lastUpdated.toLocaleTimeString()}
-                  </span>
-                )}
               </p>
               {!loading && docs.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setReloadKey(k => k + 1)}
-                    className="h-8"
-                  >
-                    Refresh Data
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -857,7 +680,7 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
               <AlertTitle>Failed to load data</AlertTitle>
               <AlertDescription className="flex items-start justify-between gap-4">
                 <span>{error}</span>
-                <Button variant="secondary" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button>
+                <Button variant="secondary" onClick={refreshData}>Retry</Button>
               </AlertDescription>
             </Alert>
           )}
@@ -885,6 +708,7 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
           <div className="grid gap-4 md:grid-cols-2">
             {visible.map((d, index) => {
               const Icon = typeIcon(d.type);
+              const isNew = newDocuments.some(newDoc => newDoc.id === d.id);
               return (
                 <Card 
                   key={d.id} 
@@ -908,7 +732,7 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
                         <div className="flex items-center justify-between mt-3 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 200}ms` }}>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">{d.type}</Badge>
-                            {newIdSet.has(d.id) && <Badge>New</Badge>}
+                            {isNew && <Badge>New</Badge>}
                           </div>
                           <time className="text-xs text-muted-foreground">
                             {d.date ? format(parseISO(d.date), "MMM dd, yyyy") : ""}

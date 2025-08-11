@@ -596,15 +596,17 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container py-6">
+      <main className="container max-w-7xl py-6">
         <div className="grid gap-6">
           {/* New Documents Banner */}
-          <NewDocumentsBanner
-            newDocumentsCount={newDocuments.length}
-            onDismiss={handleDismissNewBanner}
-            onMarkAllSeen={markAllAsSeen}
-            visible={showNewBanner && hasNewDocuments}
-          />
+          <div className="px-4 sm:px-0">
+            <NewDocumentsBanner
+              newDocumentsCount={newDocuments.length}
+              onDismiss={handleDismissNewBanner}
+              onMarkAllSeen={markAllAsSeen}
+              visible={showNewBanner && hasNewDocuments}
+            />
+          </div>
 
           {/* Results Count & Sort Toggle */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

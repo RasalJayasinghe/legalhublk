@@ -21,14 +21,7 @@ Built to help journalists, researchers, lawyers, students, and the public easily
 
 ## 🚀 Getting Started
 
-You can edit and run LegalHub LK in two ways:
-
-### **Option 1: Use Lovable**
-1. Open the project in [Lovable](https://lovable.dev).
-2. Start prompting or editing visually.
-3. All changes are auto-committed to this repository.
-
-### **Option 2: Use Your Own IDE**
+###Use Your Own IDE**
 If you want to work locally:
 
 ```bash

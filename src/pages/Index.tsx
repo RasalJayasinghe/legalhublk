@@ -17,6 +17,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ShareButton } from "@/components/share-button";
 import { DocumentSkeleton } from "@/components/document-skeleton";
+import { LoadingProgress } from "@/components/loading-progress";
 import { Brand } from "@/components/brand";
 import { TypewriterInput } from "@/components/typewriter-input";
 import { InterestPopup } from "@/components/interest-popup";
@@ -87,8 +88,13 @@ function normalize(raw: LegalDocRaw, idx: number): LegalDocNorm | null {
 }
 
 const Index = () => {
-  const [docs, setDocs] = useState<LegalDocNorm[]>([]);
+const [docs, setDocs] = useState<LegalDocNorm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState("");
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [totalDocuments, setTotalDocuments] = useState(0);
+  const [processedDocuments, setProcessedDocuments] = useState(0);
   const [query, setQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<TypeFilter[]>([]);
   const [fromDate, setFromDate] = useState<string>("");
@@ -126,17 +132,54 @@ const Index = () => {
     (async () => {
       setLoading(true);
       setError(null);
+      setLoadingStage("Fetching latest documents...");
+      setLoadingProgress(10);
+      
       for (const url of DATA_URLS) {
         try {
-          const res = await fetch(url, { headers: { Accept: "application/json" } });
+          // Add cache-busting parameter to ensure fresh data
+          const cacheBustUrl = `${url}?t=${Date.now()}`;
+          const res = await fetch(cacheBustUrl, { 
+            headers: { 
+              Accept: "application/json",
+              "Cache-Control": "no-cache"
+            } 
+          });
           if (!res.ok) continue;
+          
+          setLoadingStage("Processing document data...");
+          setLoadingProgress(30);
+          
           const data = await res.json();
           const arr: LegalDocRaw[] = Array.isArray(data) ? data : data?.items || data?.docs || [];
           if (!Array.isArray(arr) || arr.length === 0) continue;
-          const normalized = arr.map(normalize).filter(Boolean) as LegalDocNorm[];
+          
+          setTotalDocuments(arr.length);
+          setLoadingStage(`Processing ${arr.length.toLocaleString()} documents...`);
+          setLoadingProgress(50);
+          
+          // Process documents with progress updates
+          const normalized: LegalDocNorm[] = [];
+          for (let i = 0; i < arr.length; i++) {
+            const doc = normalize(arr[i], i);
+            if (doc) normalized.push(doc);
+            
+            // Update progress every 1000 documents
+            if (i % 1000 === 0) {
+              setProcessedDocuments(i);
+              setLoadingProgress(50 + (i / arr.length) * 30);
+            }
+          }
+          
           if (!cancelled) {
             setDocs(normalized);
+            setProcessedDocuments(normalized.length);
             setPage(1);
+            setLastUpdated(new Date());
+            
+            setLoadingStage("Building search index...");
+            setLoadingProgress(85);
+            
             // Build lunr index
             const built = lunr(function () {
               // @ts-ignore - runtime property on builder
@@ -190,7 +233,9 @@ const Index = () => {
               setNewIdSet(new Set());
               setShowNewBanner(false);
             }
-            setLoading(false);
+            setLoadingStage("Ready!");
+            setLoadingProgress(100);
+            setTimeout(() => setLoading(false), 500);
           }
           return; // success
         } catch (e) {
@@ -748,23 +793,38 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">
                 {filtered.length} results
                 {(query || selectedTypes.length || fromDate || toDate) && " for filters"}
+                {lastUpdated && (
+                  <span className="text-xs">
+                    • Updated {lastUpdated.toLocaleTimeString()}
+                  </span>
+                )}
               </p>
               {!loading && docs.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setQuery("");
-                    setSelectedTypes([]);
-                    setFromDate("");
-                    setToDate("");
-                    setShowOnlyNew(false);
-                    setPage(1);
-                  }}
-                  className="h-8"
-                >
-                  Clear all
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setReloadKey(k => k + 1)}
+                    className="h-8"
+                  >
+                    Refresh Data
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setQuery("");
+                      setSelectedTypes([]);
+                      setFromDate("");
+                      setToDate("");
+                      setShowOnlyNew(false);
+                      setPage(1);
+                    }}
+                    className="h-8"
+                  >
+                    Clear all
+                  </Button>
+                </div>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -805,7 +865,14 @@ const Index = () => {
           <Separator />
 
           {/* Loading State */}
-          {loading && <DocumentSkeleton count={8} />}
+          {loading && (
+            <LoadingProgress
+              stage={loadingStage}
+              progress={loadingProgress}
+              totalDocuments={totalDocuments}
+              processedDocuments={processedDocuments}
+            />
+          )}
 
           {/* Empty State */}
           {!loading && visible.length === 0 && (

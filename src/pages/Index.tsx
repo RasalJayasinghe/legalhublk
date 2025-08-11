@@ -24,6 +24,10 @@ import { InterestPopup } from "@/components/interest-popup";
 import { SyncStatus } from "@/components/sync-status";
 import { NewDocumentsBanner } from "@/components/new-documents-banner";
 import { useDocumentSync, type LegalDocNorm } from "@/hooks/useDocumentSync";
+import { useProgressiveLoader } from "@/hooks/useProgressiveLoader";
+import { useLazySearch } from "@/hooks/useLazySearch";
+import { InstantUI } from "@/components/instant-ui";
+import { VirtualList } from "@/components/virtual-list";
 import type { DateRange } from "react-day-picker";
 
 const PAGE_SIZE = 20;
@@ -39,22 +43,31 @@ function typeIcon(type: string) {
 }
 
 const Index = () => {
-  // Use the new document sync hook
+  // Use progressive loader for fast initial display
+  const progressiveLoader = useProgressiveLoader();
+  
+  // Use the document sync hook for real-time updates
+  const syncHook = useDocumentSync();
+  
+  // Use whichever has data first
+  const docs = progressiveLoader.docs.length > 0 ? progressiveLoader.docs : syncHook.docs;
+  const loading = progressiveLoader.loading || syncHook.loading;
+  const error = progressiveLoader.error || syncHook.error;
+  
+  // Use sync hook data for UI state
   const {
-    docs,
-    loading,
-    error,
     lastUpdated,
-    totalDocuments,
-    processedDocuments,
-    loadingStage,
-    loadingProgress,
     newDocuments,
     hasNewDocuments,
     documentStats,
     refreshData,
     markAllAsSeen
-  } = useDocumentSync();
+  } = syncHook;
+  
+  const totalDocuments = docs.length;
+  const processedDocuments = docs.length;
+  const loadingStage = progressiveLoader.loading ? `Progressive Loading... ${progressiveLoader.processedCount} docs` : syncHook.loadingStage;
+  const loadingProgress = progressiveLoader.loading ? progressiveLoader.totalProgress : syncHook.loadingProgress;
 
   const [query, setQuery] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<TypeFilter[]>([]);
@@ -81,21 +94,13 @@ const Index = () => {
     return () => clearTimeout(t);
   }, [query]);
 
-  // Build lunr search index when docs change
+  // Use lazy search for better performance
+  const { search, isIndexing, hasIndex } = useLazySearch(docs);
+  
+  // Initialize progressive loading
   useEffect(() => {
-    if (docs.length > 0) {
-      const built = lunr(function () {
-        // @ts-ignore - runtime property on builder
-        this.metadataWhitelist = ["position"];
-        this.ref("id");
-        this.field("title");
-        this.field("summary");
-        this.field("type");
-        docs.forEach((d) => this.add(d));
-      });
-      setIdx(built);
-    }
-  }, [docs]);
+    progressiveLoader.loadDocuments();
+  }, [progressiveLoader.loadDocuments]);
 
   // URL: hydrate on mount
   useEffect(() => {
@@ -142,28 +147,18 @@ const Index = () => {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  // Build match position map for highlighting
+  // Build match position map for highlighting from search results
   const matchPositions = useMemo(() => {
     const map = new Map<string, { title: [number, number][], summary: [number, number][] }>();
-    if (!idx || !query.trim()) return map;
-    try {
-      const results: any[] = idx.search(query.trim()) as any;
-      results.forEach((r: any) => {
-        const meta = r.matchData?.metadata ?? {};
-        const title: [number, number][] = [];
-        const summary: [number, number][] = [];
-        for (const term of Object.keys(meta)) {
-          const fields = meta[term] ?? {};
-          if (fields.title?.position) title.push(...fields.title.position);
-          if (fields.summary?.position) summary.push(...fields.summary.position);
-        }
-        if (title.length || summary.length) {
-          map.set(r.ref, { title, summary });
-        }
-      });
-    } catch {}
+    if (!query.trim()) return map;
+    
+    const searchResults = search(query.trim());
+    searchResults.forEach(result => {
+      map.set(result.doc.id, result.highlights);
+    });
+    
     return map;
-  }, [idx, query]);
+  }, [search, query]);
 
   type Range = [number, number];
   const mergeRanges = (ranges: Range[]) => {
@@ -209,28 +204,16 @@ const Index = () => {
     return { from, to } as DateRange;
   }, [fromDate, toDate]);
 
-  // Filter + Search
+  // Filter + Search with lazy search
   const filtered = useMemo(() => {
     let base: LegalDocNorm[] = docs;
-    let usedLunrOrder = false;
+    let usedSearchOrder = false;
 
-    // Search with lunr if query
-    if (idx && query.trim()) {
-      try {
-        const results = idx.search(query.trim());
-        const map = new Map(docs.map((d) => [d.id, d] as const));
-        base = results.map((r) => map.get(r.ref)).filter(Boolean) as LegalDocNorm[];
-        usedLunrOrder = true;
-      } catch {
-        // if lunr query fails (e.g., wildcard), fallback simple contains
-        const q = query.toLowerCase();
-        base = docs.filter((d) =>
-          d.title.toLowerCase().includes(q) ||
-          d.summary.toLowerCase().includes(q) ||
-          d.type.toLowerCase().includes(q)
-        );
-        usedLunrOrder = false;
-      }
+    // Search if query
+    if (query.trim()) {
+      const searchResults = search(query.trim());
+      base = searchResults.map(r => r.doc);
+      usedSearchOrder = true;
     }
 
     // Type filters
@@ -255,12 +238,12 @@ const Index = () => {
     }
 
     // Sort
-    if (!(sortMode === "relevance" && query.trim() && usedLunrOrder)) {
+    if (!(sortMode === "relevance" && query.trim() && usedSearchOrder)) {
       base = [...base].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     }
 
     return base;
-  }, [docs, idx, query, selectedTypes, fromDate, toDate, showOnlyNew, newDocuments, sortMode]);
+  }, [docs, search, query, selectedTypes, fromDate, toDate, showOnlyNew, newDocuments, sortMode]);
 
   // Infinite scroll intersection observer (after filters computed)
   useEffect(() => {
@@ -687,94 +670,91 @@ const Index = () => {
 
           <Separator />
 
-          {/* Loading State */}
-          {loading && (
-            <LoadingProgress
-              stage={loadingStage}
-              progress={loadingProgress}
-              totalDocuments={totalDocuments}
-              processedDocuments={processedDocuments}
-            />
-          )}
+          {/* Instant UI with Progressive Loading */}
+          <InstantUI 
+            isLoading={loading && progressiveLoader.initialLoadComplete === false}
+            progress={loadingProgress}
+            stage={loadingStage}
+          >
+            {/* Document Grid */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {visible.map((d, index) => {
+                const Icon = typeIcon(d.type);
+                const isNew = newDocuments.some(newDoc => newDoc.id === d.id);
+                return (
+                  <Card 
+                    key={d.id} 
+                    className="group hover:shadow-md transition-all duration-200 hover:scale-[1.02] animate-fade-in"
+                    style={{ animationDelay: `${(index % PAGE_SIZE) * 50}ms` }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-start gap-3 animate-scale-in">
+                        <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
+                          <Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="space-y-2 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 100}ms` }}>
+                            <h3 className="font-medium leading-5 line-clamp-2">
+                              {renderHighlighted(d.title, matchPositions.get(d.id)?.title)}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-3">
+                              {renderHighlighted(d.summary, matchPositions.get(d.id)?.summary)}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between mt-3 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 200}ms` }}>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">{d.type}</Badge>
+                              {isNew && <Badge>New</Badge>}
+                            </div>
+                            <time className="text-xs text-muted-foreground">
+                              {d.date ? format(parseISO(d.date), "MMM dd, yyyy") : ""}
+                            </time>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex justify-end animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 300}ms` }}>
+                        <Button
+                          onClick={() => openPdf(d)}
+                          disabled={openingId === d.id}
+                          size="sm"
+                          className="transition-all duration-200 hover:scale-105"
+                        >
+                          {openingId === d.id ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Opening...
+                            </>
+                          ) : (
+                            'Open PDF'
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Load More / Infinite Scroll */}
+            {visible.length < filtered.length && (
+              <div className="text-center space-y-4">
+                <div ref={sentinelRef} className="h-4" />
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(p => p + 1)}
+                  className="min-w-[120px]"
+                >
+                  Load more ({filtered.length - visible.length} remaining)
+                </Button>
+              </div>
+            )}
+          </InstantUI>
 
           {/* Empty State */}
           {!loading && visible.length === 0 && (
             <p className="text-muted-foreground text-center py-12">
               No results found. Try adjusting your search or filters.
             </p>
-          )}
-
-          {/* Document Grid */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {visible.map((d, index) => {
-              const Icon = typeIcon(d.type);
-              const isNew = newDocuments.some(newDoc => newDoc.id === d.id);
-              return (
-                <Card 
-                  key={d.id} 
-                  className="group hover:shadow-md transition-all duration-200 hover:scale-[1.02] animate-fade-in"
-                  style={{ animationDelay: `${(index % PAGE_SIZE) * 50}ms` }}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-3 animate-scale-in">
-                      <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="space-y-2 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 100}ms` }}>
-                          <h3 className="font-medium leading-5 line-clamp-2">
-                            {renderHighlighted(d.title, matchPositions.get(d.id)?.title)}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-3">
-                            {renderHighlighted(d.summary, matchPositions.get(d.id)?.summary)}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between mt-3 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 200}ms` }}>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary">{d.type}</Badge>
-                            {isNew && <Badge>New</Badge>}
-                          </div>
-                          <time className="text-xs text-muted-foreground">
-                            {d.date ? format(parseISO(d.date), "MMM dd, yyyy") : ""}
-                          </time>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex justify-end animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 300}ms` }}>
-                      <Button
-                        onClick={() => openPdf(d)}
-                        disabled={openingId === d.id}
-                        size="sm"
-                        className="transition-all duration-200 hover:scale-105"
-                      >
-                        {openingId === d.id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Opening...
-                          </>
-                        ) : (
-                          'Open PDF'
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Load More / Infinite Scroll */}
-          {visible.length < filtered.length && (
-            <div className="text-center space-y-4">
-              <div ref={sentinelRef} className="h-4" />
-              <Button
-                variant="outline"
-                onClick={() => setPage(p => p + 1)}
-                className="min-w-[120px]"
-              >
-                Load more ({filtered.length - visible.length} remaining)
-              </Button>
-            </div>
           )}
         </div>
       </main>

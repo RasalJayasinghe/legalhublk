@@ -137,13 +137,13 @@ const [docs, setDocs] = useState<LegalDocNorm[]>([]);
       
       for (const url of DATA_URLS) {
         try {
-          // Add cache-busting parameter to ensure fresh data
           const cacheBustUrl = `${url}?t=${Date.now()}`;
-          const res = await fetch(cacheBustUrl, { 
-            headers: { 
+          const res = await fetch(cacheBustUrl, {
+            headers: {
               Accept: "application/json",
-              "Cache-Control": "no-cache"
-            } 
+            },
+            cache: "no-store",
+            mode: "cors",
           });
           if (!res.ok) continue;
           

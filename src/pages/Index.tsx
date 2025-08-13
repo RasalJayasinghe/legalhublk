@@ -23,6 +23,7 @@ import { TypewriterInput } from "@/components/typewriter-input";
 import { InterestPopup } from "@/components/interest-popup";
 import { SyncStatus } from "@/components/sync-status";
 import { NewDocumentsBanner } from "@/components/new-documents-banner";
+import { DocumentStats } from "@/components/document-stats";
 import { useDocumentSync, type LegalDocNorm } from "@/hooks/useDocumentSync";
 import { useProgressiveLoader } from "@/hooks/useProgressiveLoader";
 import { useLazySearch } from "@/hooks/useLazySearch";
@@ -607,6 +608,11 @@ const Index = () => {
               visible={showNewBanner && hasNewDocuments}
             />
           </div>
+
+          {/* Document Statistics */}
+          {!loading && docs.length > 0 && (
+            <DocumentStats docs={docs} className="px-4 sm:px-0" />
+          )}
 
           {/* Results Count & Sort Toggle */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

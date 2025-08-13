@@ -311,6 +311,34 @@ export function useDocumentSync() {
           return r.json();
         };
 
+        // Acts directories (sorted numerically descending)
+        const listActs: any[] = await fetchJson(`https://api.github.com/repos/nuuuwan/lk_legal_docs/contents/data/acts/${year}`);
+        const actIds: string[] = Array.isArray(listActs)
+          ? listActs.map((x: any) => x.name as string).filter((n: string) => /^\d+-\d{4}$/.test(n))
+          : [];
+        actIds.sort((a, b) => {
+          const aNum = parseInt(a.split('-')[0], 10);
+          const bNum = parseInt(b.split('-')[0], 10);
+          return bNum - aNum;
+        });
+        const actMetaUrls = actIds.slice(0, 50).map(
+          (id) => `https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/acts/${year}/${id}/metadata.json`
+        );
+
+        // Bills directories (sorted numerically descending)
+        const listBills: any[] = await fetchJson(`https://api.github.com/repos/nuuuwan/lk_legal_docs/contents/data/bills/${year}`);
+        const billIds: string[] = Array.isArray(listBills)
+          ? listBills.map((x: any) => x.name as string).filter((n: string) => /^\d+-\d{4}$/.test(n))
+          : [];
+        billIds.sort((a, b) => {
+          const aNum = parseInt(a.split('-')[0], 10);
+          const bNum = parseInt(b.split('-')[0], 10);
+          return bNum - aNum;
+        });
+        const billMetaUrls = billIds.slice(0, 50).map(
+          (id) => `https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/bills/${year}/${id}/metadata.json`
+        );
+
         // Gazette directories (YYYY-MM-DD-...)
         const listGaz: any[] = await fetchJson(`https://api.github.com/repos/nuuuwan/lk_legal_docs/contents/data/gazettes/${year}`);
         const gazNames: string[] = Array.isArray(listGaz)
@@ -336,7 +364,15 @@ export function useDocumentSync() {
           (id) => `https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/extra-gazettes/${year}/${id}/metadata.json`
         );
 
-        const metaUrls = [...gazMetaUrls, ...exMetaUrls];
+        const metaUrls = [...actMetaUrls, ...billMetaUrls, ...gazMetaUrls, ...exMetaUrls];
+
+        console.log(`Fetching latest documents:`, {
+          acts: actIds.length,
+          bills: billIds.length,
+          gazettes: gazNames.length,
+          extraGazettes: exIds.length,
+          totalMetaUrls: metaUrls.length
+        });
 
         updateProgress("Merging newest items…", 70);
 

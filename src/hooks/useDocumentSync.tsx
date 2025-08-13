@@ -321,23 +321,23 @@ export function useDocumentSync() {
         const seenIds = getSeenIds();
         const newDocs = cachedDocs.filter(doc => !seenIds.has(doc.id)).slice(0, 50);
         
-        setState(prev => ({
-          ...prev,
-          docs: cachedDocs,
-          loading: false,
-          lastUpdated: lastSync,
-          totalDocuments: cachedDocs.length,
-          processedDocuments: cachedDocs.length,
-          newDocuments: newDocs,
-          hasNewDocuments: newDocs.length > 0,
-          loadingStage: "Using cached data",
-          loadingProgress: 100,
-          documentStats: { 
-            fetched: cachedDocs.length, 
-            processed: cachedDocs.length, 
-            filtered: 0 
-          }
-        }));
+      setState(prev => ({
+        ...prev,
+        docs: cachedDocs,
+        loading: false,
+        lastUpdated: lastSync,
+        totalDocuments: cachedDocs.length,
+        processedDocuments: cachedDocs.length,
+        newDocuments: newDocs,
+        hasNewDocuments: newDocs.length > 0,
+        loadingStage: "Using cached data",
+        loadingProgress: 100,
+        documentStats: { 
+          fetched: cachedDocs.length, 
+          processed: cachedDocs.length, 
+          filtered: 0 
+        }
+      }));
 
         const hasRemoteNew = currentCount > cachedDocs.length;
         if (hasRemoteNew) {

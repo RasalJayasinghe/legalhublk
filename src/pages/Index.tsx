@@ -64,7 +64,7 @@ const Index = () => {
     markAllAsSeen
   } = syncHook;
   
-  const totalDocuments = syncHook.totalDocuments || docs.length;
+  const totalDocuments = docs.length; // Use actual loaded docs count for consistency
   const processedDocuments = docs.length;
   const loadingStage = progressiveLoader.loading ? `Progressive Loading... ${progressiveLoader.processedCount} docs` : syncHook.loadingStage;
   const loadingProgress = progressiveLoader.loading ? progressiveLoader.totalProgress : syncHook.loadingProgress;
@@ -612,8 +612,13 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <p className="text-sm text-muted-foreground">
-                {filtered.length} results
+                {filtered.length.toLocaleString()} results
                 {(query || selectedTypes.length || fromDate || toDate) && " for filters"}
+                {filtered.length !== totalDocuments && (
+                  <span className="ml-1 text-xs">
+                    (from {totalDocuments.toLocaleString()} total)
+                  </span>
+                )}
               </p>
               {!loading && docs.length > 0 && (
                 <div className="flex items-center gap-2">
@@ -654,7 +659,7 @@ const Index = () => {
                 </ToggleGroup>
               )}
               <Badge variant="outline">
-                Showing {visible.length} of {filtered.length}
+                Showing {visible.length.toLocaleString()} of {filtered.length.toLocaleString()}
               </Badge>
             </div>
           </div>
@@ -746,7 +751,7 @@ const Index = () => {
                   onClick={() => setPage(p => p + 1)}
                   className="min-w-[120px]"
                 >
-                  Load more ({filtered.length - visible.length} remaining)
+                  Load more ({(filtered.length - visible.length).toLocaleString()} remaining)
                 </Button>
               </div>
             )}

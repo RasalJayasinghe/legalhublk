@@ -59,7 +59,7 @@ export function SyncStatus({
               <span className="ml-1 text-sm font-medium">
                 {totalDocuments.toLocaleString()}
               </span>
-              {hasNewDocuments && (
+              {hasNewDocuments && newDocumentsCount > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 px-1 text-xs">
                   +{newDocumentsCount}
                 </Badge>

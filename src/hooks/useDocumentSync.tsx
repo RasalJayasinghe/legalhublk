@@ -40,7 +40,14 @@ export interface SyncState {
   gitCommitUrl: string | null;
 }
 
-const DATA_URLS = [
+// Local data URLs - served from public/data directory
+const LOCAL_DATA_URLS = {
+  catalog: '/data/catalog.json',
+  latest: '/data/latest.json'
+};
+
+// Fallback remote URLs if local files are not available
+const REMOTE_DATA_URLS = [
   "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all.json",
 ];
 
@@ -83,7 +90,7 @@ function normalize(raw: LegalDocRaw): LegalDocNorm | null {
 
 async function fetchDocumentCount(): Promise<number> {
   try {
-    for (const url of DATA_URLS) {
+    for (const url of REMOTE_DATA_URLS) {
       const response = await fetch(url, {
         method: 'HEAD',
         cache: 'no-store'
@@ -106,14 +113,37 @@ async function fetchDocumentCount(): Promise<number> {
   }
 }
 
-async function fetchDocuments(
+async function fetchLocalDocuments(): Promise<{ catalog: LegalDocNorm[]; latest: LegalDocNorm[] }> {
+  try {
+    // Try to fetch local catalog first
+    const catalogResponse = await fetch(LOCAL_DATA_URLS.catalog);
+    const latestResponse = await fetch(LOCAL_DATA_URLS.latest);
+    
+    if (catalogResponse.ok && latestResponse.ok) {
+      const catalogData = await catalogResponse.json();
+      const latestData = await latestResponse.json();
+      
+      return {
+        catalog: catalogData.documents || [],
+        latest: latestData.documents || []
+      };
+    }
+  } catch (error) {
+    console.warn('Failed to fetch local documents, falling back to remote:', error);
+  }
+  
+  // Fallback to empty arrays if local files are not available
+  return { catalog: [], latest: [] };
+}
+
+async function fetchRemoteDocuments(
   onProgress?: (stage: string, progress: number, processed?: number, total?: number) => void
 ): Promise<{ docs: LegalDocNorm[], stats: SyncState['documentStats'] }> {
-  onProgress?.("Fetching latest documents...", 10);
+  onProgress?.("Fetching remote documents...", 10);
   
   const stats = { fetched: 0, processed: 0, filtered: 0 };
   
-  for (const url of DATA_URLS) {
+  for (const url of REMOTE_DATA_URLS) {
     try {
       const cacheBustUrl = `${url}?t=${Date.now()}`;
       const response = await fetch(cacheBustUrl, {
@@ -163,6 +193,29 @@ async function fetchDocuments(
   }
   
   throw new Error('Failed to fetch documents from any source');
+}
+
+async function fetchDocuments(
+  onProgress?: (stage: string, progress: number, processed?: number, total?: number) => void
+): Promise<{ docs: LegalDocNorm[], stats: SyncState['documentStats'] }> {
+  onProgress?.("Checking local data...", 5);
+  
+  // Try local files first (from GitHub Actions sync)
+  const { catalog, latest } = await fetchLocalDocuments();
+  
+  if (catalog.length > 0) {
+    onProgress?.("Using local data", 100);
+    const stats = { 
+      fetched: catalog.length, 
+      processed: catalog.length, 
+      filtered: 0 
+    };
+    return { docs: catalog, stats };
+  }
+  
+  // Fallback to remote fetch if local files are empty or unavailable
+  console.log('Local data not available, fetching from remote sources...');
+  return await fetchRemoteDocuments(onProgress);
 }
 
 function getSeenIds(): Set<string> {

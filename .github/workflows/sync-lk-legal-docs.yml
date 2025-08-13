@@ -1,0 +1,76 @@
+name: Sync LK Legal Documents
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+
+env:
+  SOURCE_BASE: https://raw.githubusercontent.com/nuuuwan/lk_legal_docs_data/main
+  SOURCE_ALL: data_1980s_2020s/all.json
+  SOURCE_LATEST: data_2020s/latest-100.json
+  OUTPUT_DIR: public/data
+
+jobs:
+  sync-documents:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        pip install requests
+    
+    - name: Create output directory
+      run: |
+        mkdir -p ${{ env.OUTPUT_DIR }}
+    
+    - name: Run sync script
+      run: |
+        python scripts/sync_lk_legal_docs.py
+      env:
+        SOURCE_BASE: ${{ env.SOURCE_BASE }}
+        SOURCE_ALL: ${{ env.SOURCE_ALL }}
+        SOURCE_LATEST: ${{ env.SOURCE_LATEST }}
+        OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
+    
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ${{ env.OUTPUT_DIR }}/*.json
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update legal documents data - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          git push
+        fi
+    
+    # Optional: Push to external data repository if secrets are configured
+    - name: Push to external data repo
+      if: ${{ secrets.LEGALHUB_DATA_REPO && secrets.LEGALHUB_DATA_BRANCH && secrets.GH_PAT }}
+      run: |
+        git clone https://${{ secrets.GH_PAT }}@github.com/${{ secrets.LEGALHUB_DATA_REPO }}.git external-repo
+        cd external-repo
+        git checkout ${{ secrets.LEGALHUB_DATA_BRANCH }} || git checkout -b ${{ secrets.LEGALHUB_DATA_BRANCH }}
+        cp -r ../${{ env.OUTPUT_DIR }}/* ./
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        if git diff --staged --quiet; then
+          echo "No changes to push to external repo"
+        else
+          git commit -m "Sync legal documents data - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          git push origin ${{ secrets.LEGALHUB_DATA_BRANCH }}
+        fi

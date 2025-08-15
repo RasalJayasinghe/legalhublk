@@ -51,52 +51,32 @@ def normalize_document(raw_doc: Dict[str, Any]) -> Dict[str, Any]:
         source: string
     }
     """
-    # Extract basic fields
-    doc_id = raw_doc.get('id', '')
-    title = raw_doc.get('title', '').strip()
+    # Extract fields from the lk_legal_docs structure
+    doc_id = raw_doc.get('id', raw_doc.get('doc_num', ''))
+    
+    # Get title from description or other fields
+    title = raw_doc.get('description', raw_doc.get('title', ''))
+    
+    # Get date
     date_str = raw_doc.get('date', '')
     
-    # Determine document type from various fields
-    doc_type = raw_doc.get('type', '').lower()
-    if 'act' in doc_type or 'act' in title.lower():
-        normalized_type = 'Act'
-    elif 'bill' in doc_type or 'bill' in title.lower():
-        normalized_type = 'Bill'
-    elif 'extraordinary' in doc_type or 'extraordinary' in title.lower():
+    # Determine type from doc_type_name
+    doc_type_name = raw_doc.get('doc_type_name', '').lower()
+    if 'extra-gazette' in doc_type_name or 'extraordinary' in doc_type_name:
         normalized_type = 'Extraordinary Gazette'
-    elif 'gazette' in doc_type or 'gazette' in title.lower():
+    elif 'gazette' in doc_type_name:
         normalized_type = 'Gazette'
+    elif 'act' in doc_type_name:
+        normalized_type = 'Act'
+    elif 'bill' in doc_type_name:
+        normalized_type = 'Bill'
     else:
-        # Fallback based on ID pattern or content
-        if 'act' in doc_id.lower():
-            normalized_type = 'Act'
-        elif 'bill' in doc_id.lower():
-            normalized_type = 'Bill'
-        elif 'extraordinary' in doc_id.lower():
-            normalized_type = 'Extraordinary Gazette'
-        else:
-            normalized_type = 'Gazette'
+        normalized_type = 'Gazette'  # Default
     
-    # Extract languages
-    languages = []
-    lang_field = raw_doc.get('language', raw_doc.get('languages', []))
-    if isinstance(lang_field, list):
-        languages = lang_field
-    elif isinstance(lang_field, str):
-        languages = [lang_field] if lang_field else []
-    
-    # Ensure we have at least 'en' if no languages specified
-    if not languages:
-        languages = ['en']
-    
-    # PDF URL
-    pdf_url = raw_doc.get('pdf_url', raw_doc.get('url', ''))
-    
-    # Summary
-    summary = raw_doc.get('summary', raw_doc.get('description', ''))
-    
-    # Source reference
-    source = raw_doc.get('source', 'lk_legal_docs_data')
+    # Extract languages and PDF URL from lang_to_source_url
+    lang_mapping = raw_doc.get('lang_to_source_url', {})
+    languages = list(lang_mapping.keys()) if lang_mapping else ['en']
+    pdf_url = lang_mapping.get('en', lang_mapping.get('si', lang_mapping.get('ta', '')))
     
     return {
         'id': doc_id,
@@ -105,8 +85,8 @@ def normalize_document(raw_doc: Dict[str, Any]) -> Dict[str, Any]:
         'date': date_str,
         'languages': languages,
         'pdf_url': pdf_url,
-        'summary': summary,
-        'source': source
+        'summary': title,  # Use title as summary
+        'source': 'lk_legal_docs'
     }
 
 
@@ -148,9 +128,9 @@ def main():
     print("Starting LegalHub LK document sync...")
     
     # Get configuration from environment
-    source_base = get_env_var('SOURCE_BASE', 'https://raw.githubusercontent.com/nuuuwan/lk_legal_docs_data/main')
-    source_all = get_env_var('SOURCE_ALL', 'data_1980s_2020s/all.json')
-    source_latest = get_env_var('SOURCE_LATEST', 'data_2020s/latest-100.json')
+    source_base = get_env_var('SOURCE_BASE', 'https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main')
+    source_all = get_env_var('SOURCE_ALL', 'data/all.json')
+    source_latest = get_env_var('SOURCE_LATEST', 'data/latest-100.json')
     output_dir = get_env_var('OUTPUT_DIR', 'public/data')
     
     # Construct URLs

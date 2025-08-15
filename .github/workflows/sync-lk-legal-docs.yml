@@ -8,9 +8,9 @@ on:
     # Allow manual triggering
 
 env:
-  SOURCE_BASE: https://raw.githubusercontent.com/nuuuwan/lk_legal_docs_data/main
-  SOURCE_ALL: data_1980s_2020s/all.json
-  SOURCE_LATEST: data_2020s/latest-100.json
+  SOURCE_BASE: https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main
+  SOURCE_ALL: data/all.json
+  SOURCE_LATEST: data/latest-100.json
   OUTPUT_DIR: public/data
 
 jobs:

@@ -17,7 +17,8 @@ export function NewDocumentsBanner({
   onMarkAllSeen,
   visible
 }: NewDocumentsBannerProps) {
-  if (!visible || newDocumentsCount === 0) return null;
+  // Prevent duplicate banners by strict validation
+  if (!visible || newDocumentsCount === 0 || newDocumentsCount < 0) return null;
 
   return (
     <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">

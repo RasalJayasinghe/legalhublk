@@ -219,9 +219,20 @@ export function useProgressiveLoader() {
               totalProgress: 100
             }));
 
-            // Cache results
-            localStorage.setItem('lh_documents_cache_progressive', JSON.stringify(sorted));
-            localStorage.setItem('lh_last_sync', new Date().toISOString());
+            // Cache results with quota handling
+            try {
+              // Only cache a subset to prevent quota exceeded errors
+              const cacheData = sorted.slice(0, 100); // Cache first 100 docs only
+              localStorage.setItem('lh_documents_cache_progressive', JSON.stringify(cacheData));
+              localStorage.setItem('lh_last_sync', new Date().toISOString());
+            } catch (error) {
+              console.warn('Could not cache documents due to storage quota:', error.message);
+              // Clear any existing cache if quota exceeded
+              try {
+                localStorage.removeItem('lh_documents_cache_progressive');
+                localStorage.removeItem('lh_last_sync');
+              } catch {}
+            }
 
             processingRef.current = false;
             resolve();

@@ -105,7 +105,7 @@ const Latest = () => {
                         <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center">
                           <Icon className="h-5 w-5 text-accent-foreground" />
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h2 className="font-semibold leading-snug">{d.title}</h2>
                             <Badge variant="secondary" className="shrink-0">New</Badge>
@@ -117,6 +117,14 @@ const Latest = () => {
                           </div>
                         </div>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(d.pdfUrl, '_blank', 'noopener')}
+                        className="shrink-0"
+                      >
+                        Open PDF
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

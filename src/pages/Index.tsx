@@ -292,6 +292,8 @@ const Index = () => {
 
   const handleDismissNewBanner = () => {
     setShowNewBanner(false);
+    // Store dismissal in localStorage to prevent re-showing on refresh
+    localStorage.setItem('lh_banner_dismissed', Date.now().toString());
   };
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);

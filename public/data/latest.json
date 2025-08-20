@@ -1,46 +1,105 @@
 {
-  "updated_at": "2025-08-15T04:20:00Z",
-  "count": 4,
+  "updated_at": "2025-08-20T11:45:00Z",
+  "count": 9,
   "documents": [
     {
-      "id": "2025-07-25-i-general",
-      "type": "Gazette",
-      "title": "(I) - General",
-      "date": "2025-07-25",
-      "languages": ["en", "si"],
-      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/7/2025-07-25(I-I)E.pdf",
-      "summary": "(I) - General",
-      "source": "lk_legal_docs"
-    },
-    {
-      "id": "2025-07-25-iia-advertising",
+      "id": "2025-08-15-iia-advertising",
       "type": "Gazette",
       "title": "(IIA) - Advertising",
-      "date": "2025-07-25",
-      "languages": ["en", "ta"],
-      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/7/2025-07-25(I-IIA)E.pdf",
+      "date": "2025-08-15",
+      "languages": ["en"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-15(I-IIA)E.pdf",
       "summary": "(IIA) - Advertising",
-      "source": "lk_legal_docs"
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
     },
     {
-      "id": "2025-07-18-iv-a-provincial-councils",
+      "id": "2025-08-15-iib-advertising",
+      "type": "Gazette",
+      "title": "(IIB) - Advertising",
+      "date": "2025-08-15",
+      "languages": ["en"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-15(I-IIB)E.pdf",
+      "summary": "(IIB) - Advertising",
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-08-08-iv-a-provincial-councils",
       "type": "Gazette",
       "title": "IV (A) - Provincial Councils",
-      "date": "2025-07-18",
-      "languages": ["en"],
-      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/7/2025-07-18(IV-A)E.pdf",
+      "date": "2025-08-08",
+      "languages": ["en", "si"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-08(IV-A)E.pdf",
       "summary": "IV (A) - Provincial Councils",
-      "source": "lk_legal_docs"
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
     },
     {
-      "id": "2025-07-18-iii-trade-marks-and-patent-notices",
+      "id": "2025-08-08-legal-section",
+      "type": "Gazette",
+      "title": "Legal Section",
+      "date": "2025-08-08",
+      "languages": ["en"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-08(II-0)E.pdf",
+      "summary": "Legal Section",
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-08-01-iv-b-local-government",
+      "type": "Gazette",
+      "title": "IV (B) - Local Government",
+      "date": "2025-08-01",
+      "languages": ["si"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-01(IV-B)S.pdf",
+      "summary": "IV (B) - Local Government",
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-08-01-iii-trade-marks-and-patent-notices",
       "type": "Gazette",
       "title": "(III) - TRADE MARKS AND PATENT NOTICES",
-      "date": "2025-07-18",
-      "languages": ["si"],
-      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/7/2025-07-18(I-III)S.pdf",
+      "date": "2025-08-01",
+      "languages": ["en", "si"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-01(I-III)E.pdf",
       "summary": "(III) - TRADE MARKS AND PATENT NOTICES",
-      "source": "lk_legal_docs"
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-08-01-iib-advertising",
+      "type": "Gazette",
+      "title": "(IIB) - Advertising",
+      "date": "2025-08-01",
+      "languages": ["si"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-01(I-IIB)S.pdf",
+      "summary": "(IIB) - Advertising",
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-08-01-iia-advertising",
+      "type": "Gazette",
+      "title": "(IIA) - Advertising",
+      "date": "2025-08-01",
+      "languages": ["si"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-01(I-IIA)S.pdf",
+      "summary": "(IIA) - Advertising",
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-08-01-i-general",
+      "type": "Gazette",
+      "title": "(I) - General",
+      "date": "2025-08-01",
+      "languages": ["si"],
+      "pdf_url": "https://documents.gov.lk/view/gazettes/2025/8/2025-08-01(I-I)S.pdf",
+      "summary": "(I) - General",
+      "source": "lk_legal_docs",
+      "rawTypeName": "gazettes"
     }
   ]
 }

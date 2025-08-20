@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 def normalize_document(doc):
@@ -44,39 +44,21 @@ def fetch_latest_documents():
             if normalized["date"]:  # Only include docs with valid dates
                 normalized_catalog.append(normalized)
         
-        # Get documents from August 2025 for latest.json
-        august_2025_docs = []
-        for doc in sorted_docs:
-            if doc.get("date", "").startswith("2025-08"):
-                normalized = normalize_document(doc)
-                if normalized["date"]:
-                    august_2025_docs.append(normalized)
-        
-        # Also include any recent documents from the last 30 days
-        from datetime import datetime, timedelta
-        thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        # Get recent documents (last 60 days to capture more)
+        sixty_days_ago = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
         
         recent_docs = []
         for doc in sorted_docs:
             doc_date = doc.get("date", "")
-            if doc_date and doc_date >= thirty_days_ago:
+            if doc_date and doc_date >= sixty_days_ago:
                 normalized = normalize_document(doc)
-                if normalized["date"] and normalized not in august_2025_docs:
+                if normalized["date"]:
                     recent_docs.append(normalized)
         
-        # Combine and deduplicate
-        all_latest_docs = august_2025_docs + recent_docs
-        seen_ids = set()
-        deduplicated_latest = []
-        for doc in all_latest_docs:
-            if doc["id"] not in seen_ids:
-                seen_ids.add(doc["id"])
-                deduplicated_latest.append(doc)
-        
         # Sort by date descending
-        deduplicated_latest.sort(key=lambda x: x["date"], reverse=True)
+        recent_docs.sort(key=lambda x: x["date"], reverse=True)
         
-        print(f"Found {len(deduplicated_latest)} recent documents (August 2025 + last 30 days)")
+        print(f"Found {len(recent_docs)} documents from last 60 days")
         
         # Create the catalog data
         catalog_data = {
@@ -85,11 +67,11 @@ def fetch_latest_documents():
             "documents": normalized_catalog
         }
         
-        # Create the latest data (August 2025 + recent documents)
+        # Create the latest data (recent documents)
         latest_data = {
             "updated_at": datetime.utcnow().isoformat() + "Z", 
-            "count": len(deduplicated_latest),
-            "documents": deduplicated_latest
+            "count": len(recent_docs),
+            "documents": recent_docs
         }
         
         # Write to files
@@ -101,12 +83,12 @@ def fetch_latest_documents():
         
         print(f"✅ Successfully updated:")
         print(f"   - catalog.json: {len(normalized_catalog)} documents")
-        print(f"   - latest.json: {len(deduplicated_latest)} recent documents")
+        print(f"   - latest.json: {len(recent_docs)} recent documents")
         
-        if deduplicated_latest:
-            print(f"📅 Latest document date: {deduplicated_latest[0]['date']}")
+        if recent_docs:
+            print(f"📅 Latest document date: {recent_docs[0]['date']}")
             print("🆕 Recent documents:")
-            for doc in deduplicated_latest[:8]:
+            for doc in recent_docs[:10]:
                 print(f"   - {doc['date']}: {doc['title']}")
         
         return True

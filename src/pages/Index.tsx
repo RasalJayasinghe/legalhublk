@@ -61,8 +61,14 @@ const Index = () => {
     hasNewDocuments,
     documentStats,
     refreshData,
-    markAllAsSeen
+    markAllAsSeen,
+    syncDocuments
   } = syncHook;
+  
+  // Force sync on mount to get latest documents
+  useEffect(() => {
+    syncDocuments(true);
+  }, [syncDocuments]);
   
   const totalDocuments = docs.length; // Use actual loaded docs count for consistency
   const processedDocuments = docs.length;

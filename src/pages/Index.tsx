@@ -31,7 +31,7 @@ import { VirtualList } from "@/components/virtual-list";
 import type { DateRange } from "react-day-picker";
 
 const PAGE_SIZE = 20;
-const DOC_TYPES = ["Gazette", "Extraordinary Gazette", "Act", "Bill"] as const;
+const DOC_TYPES = ["Gazette", "Extraordinary Gazette", "Act", "Bill", "Form", "Notice"] as const;
 
 type TypeFilter = typeof DOC_TYPES[number];
 
@@ -39,6 +39,8 @@ function typeIcon(type: string) {
   const t = type.toLowerCase();
   if (t.includes("act")) return ScrollText;
   if (t.includes("bill")) return FileText;
+  if (t.includes("form")) return FileText;
+  if (t.includes("notice")) return FileText;
   return Newspaper;
 }
 
@@ -527,16 +529,24 @@ const Index = () => {
                     }}
                     aria-label="Filter by document type"
                   >
-                    {DOC_TYPES.map((t) => (
-                      <ToggleGroupItem 
-                        key={t} 
-                        value={t} 
-                        aria-label={`Filter ${t}`}
-                        className="text-sm px-3 h-8"
-                      >
-                        {t}
-                      </ToggleGroupItem>
-                    ))}
+                    {DOC_TYPES.map((t) => {
+                      const isNew = t === "Form" || t === "Notice";
+                      return (
+                        <ToggleGroupItem 
+                          key={t} 
+                          value={t} 
+                          aria-label={`Filter ${t}`}
+                          className="text-sm px-3 h-8 relative"
+                        >
+                          {t}
+                          {isNew && (
+                            <Badge className="absolute -top-2 -right-2 text-xs px-1 py-0 h-4 bg-green-600 hover:bg-green-700">
+                              NEW
+                            </Badge>
+                          )}
+                        </ToggleGroupItem>
+                      );
+                    })}
                   </ToggleGroup>
                 </div>
 
@@ -716,11 +726,16 @@ const Index = () => {
                               {renderHighlighted(d.summary, matchPositions.get(d.id)?.summary)}
                             </p>
                           </div>
-                          <div className="flex items-center justify-between mt-3 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 200}ms` }}>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary">{d.type}</Badge>
-                              {isNew && <Badge>New</Badge>}
-                            </div>
+                            <div className="flex items-center justify-between mt-3 animate-slide-up" style={{ animationDelay: `${(index % PAGE_SIZE) * 30 + 200}ms` }}>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary">{d.type}</Badge>
+                                {isNew && <Badge>New</Badge>}
+                                {(d.type === "Form" || d.type === "Notice") && (
+                                  <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                    NEW
+                                  </Badge>
+                                )}
+                              </div>
                             <time className="text-xs text-muted-foreground">
                               {d.date ? format(parseISO(d.date), "MMM dd, yyyy") : ""}
                             </time>

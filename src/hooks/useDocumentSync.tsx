@@ -198,30 +198,24 @@ async function fetchRemoteDocuments(
 async function fetchDocuments(
   onProgress?: (stage: string, progress: number, processed?: number, total?: number) => void
 ): Promise<{ docs: LegalDocNorm[], stats: SyncState['documentStats'] }> {
-  onProgress?.("Checking for latest data...", 5);
+  onProgress?.("Checking local data...", 5);
   
-  // Always try remote first to get the most up-to-date documents
-  try {
-    console.log('Fetching latest data from remote sources...');
-    return await fetchRemoteDocuments(onProgress);
-  } catch (error) {
-    console.warn('Remote fetch failed, trying local fallback:', error);
-    
-    // Fallback to local files if remote fails
-    const { catalog, latest } = await fetchLocalDocuments();
-    
-    if (catalog.length > 0) {
-      onProgress?.("Using local fallback data", 100);
-      const stats = { 
-        fetched: catalog.length, 
-        processed: catalog.length, 
-        filtered: 0 
-      };
-      return { docs: catalog, stats };
-    }
-    
-    throw new Error('No data available from remote or local sources');
+  // Try local files first (from GitHub Actions sync)
+  const { catalog, latest } = await fetchLocalDocuments();
+  
+  if (catalog.length > 0) {
+    onProgress?.("Using local data", 100);
+    const stats = { 
+      fetched: catalog.length, 
+      processed: catalog.length, 
+      filtered: 0 
+    };
+    return { docs: catalog, stats };
   }
+  
+  // Fallback to remote fetch if local files are empty or unavailable
+  console.log('Local data not available, fetching from remote sources...');
+  return await fetchRemoteDocuments(onProgress);
 }
 
 function getSeenIds(): Set<string> {

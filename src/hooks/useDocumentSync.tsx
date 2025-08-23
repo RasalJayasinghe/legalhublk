@@ -42,8 +42,10 @@ export interface SyncState {
 
 // Local data URLs - served from public/data directory
 const LOCAL_DATA_URLS = {
-  catalog: '/data/catalog.json',
-  latest: '/data/latest.json'
+  catalog: '/data/all/catalog.json',    // New merged structure
+  latest: '/data/all/latest.json',     // New merged structure
+  legacy_catalog: '/data/catalog.json', // Legacy fallback
+  legacy_latest: '/data/latest.json'    // Legacy fallback
 };
 
 // Fallback remote URLs if local files are not available
@@ -66,7 +68,9 @@ function normalize(raw: LegalDocRaw): LegalDocNorm | null {
     
     const typeMap: Record<string, string> = {
       'acts': 'Act',
-      'bills': 'Bill',
+      'bills': 'Bill', 
+      'forms': 'Form',
+      'notices': 'Notice',
       'gazettes': 'Gazette',
       'extra-gazettes': 'Extraordinary Gazette'
     };
@@ -115,7 +119,7 @@ async function fetchDocumentCount(): Promise<number> {
 
 async function fetchLocalDocuments(): Promise<{ catalog: LegalDocNorm[]; latest: LegalDocNorm[] }> {
   try {
-    // Try to fetch local catalog first
+    // Try new merged structure first
     const catalogResponse = await fetch(LOCAL_DATA_URLS.catalog);
     const latestResponse = await fetch(LOCAL_DATA_URLS.latest);
     
@@ -128,8 +132,23 @@ async function fetchLocalDocuments(): Promise<{ catalog: LegalDocNorm[]; latest:
         latest: latestData.documents || []
       };
     }
+    
+    // Fallback to legacy structure
+    console.log('New structure not available, trying legacy...');
+    const legacyCatalogResponse = await fetch(LOCAL_DATA_URLS.legacy_catalog);
+    const legacyLatestResponse = await fetch(LOCAL_DATA_URLS.legacy_latest);
+    
+    if (legacyCatalogResponse.ok && legacyLatestResponse.ok) {
+      const catalogData = await legacyCatalogResponse.json();
+      const latestData = await legacyLatestResponse.json();
+      
+      return {
+        catalog: catalogData.documents || [],
+        latest: latestData.documents || []
+      };
+    }
   } catch (error) {
-    console.warn('Failed to fetch local documents, falling back to remote:', error);
+    console.warn('Failed to fetch local documents:', error);
   }
   
   // Fallback to empty arrays if local files are not available
@@ -402,6 +421,8 @@ export function useDocumentSync() {
         const typeMap: Record<string, string> = {
           acts: "Act",
           bills: "Bill",
+          forms: "Form",
+          notices: "Notice",
           gazettes: "Gazette",
           "extra-gazettes": "Extraordinary Gazette",
         };

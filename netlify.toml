@@ -9,7 +9,3 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Ignore Python files and scrapers during Netlify build
-[build.ignore]
-  command = "[ \"$CACHED_COMMIT_REF\" != \"$COMMIT_REF\" ] || [ \"$REVIEW_ID\" = \"\" ]"

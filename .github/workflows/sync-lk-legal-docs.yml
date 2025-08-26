@@ -32,10 +32,11 @@ jobs:
           source ~/.cargo/env
           rustc --version
           cargo --version
-      - run: |
+      - name: Install deps
+        run: |
           source ~/.cargo/env
           python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
+          pip install -r scrapers/requirements.txt
       - name: Run ${{ matrix.job.cmd }}
         run: python -m scrapers.cli ${{ matrix.job.cmd }}
       - name: Commit changes (if any)

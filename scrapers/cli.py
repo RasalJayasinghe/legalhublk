@@ -1,6 +1,8 @@
 import argparse, os
 from . import gazettes, extra_gazettes
 from .list_scraper import run as run_list
+from .forms_notices_scraper import run_forms, run_notices
+from .acts_bills_scraper import run_acts, run_bills
 from .common.io import write_all_latest
 
 def main():
@@ -30,8 +32,14 @@ def main():
         gazettes.run(args.from_year, args.to_year, args.out)
     elif args.cmd == "extra-gazettes":
         extra_gazettes.run(args.from_year, args.to_year, args.out)
-    elif args.cmd in {"acts","bills","forms","notices"}:
-        run_list(args.cmd, args.out)
+    elif args.cmd == "forms":
+        run_forms(args.out)
+    elif args.cmd == "notices":
+        run_notices(args.out)
+    elif args.cmd == "acts":
+        run_acts(args.out)
+    elif args.cmd == "bills":
+        run_bills(args.out)
     elif args.cmd == "merge-latest":
         # read per-type latest and build fast "all/latest.json"
         import json, glob

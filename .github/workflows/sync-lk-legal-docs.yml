@@ -2,7 +2,7 @@ name: Sync Legal Data (documents.gov.lk)
 
 on:
   schedule:
-    - cron: "0 * * * *"   # hourly catch-ups; you can relax later per job
+    - cron: "0 */2 * * *"   # Every 2 hours for more frequent updates
   workflow_dispatch:
 
 jobs:

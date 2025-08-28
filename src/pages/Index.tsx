@@ -51,9 +51,9 @@ const Index = () => {
   // Use the document sync hook for real-time updates
   const syncHook = useDocumentSync();
   
-  // Use whichever has data first
-  const docs = progressiveLoader.docs.length > 0 ? progressiveLoader.docs : syncHook.docs;
-  const loading = progressiveLoader.loading || syncHook.loading;
+  // Prioritize progressive loader when it has more data (full dataset)
+  const docs = progressiveLoader.docs.length >= syncHook.docs.length ? progressiveLoader.docs : syncHook.docs;
+  const loading = progressiveLoader.loading && syncHook.loading;
   const error = progressiveLoader.error || syncHook.error;
   
   // Use sync hook data for UI state
@@ -104,6 +104,9 @@ const Index = () => {
 
   // Use lazy search for better performance
   const { search, isIndexing, hasIndex } = useLazySearch(docs);
+  
+  // Ensure search functionality is available
+  const isSearchReady = hasIndex && docs.length > 0;
   
   // Initialize progressive loading
   useEffect(() => {
@@ -217,11 +220,19 @@ const Index = () => {
     let base: LegalDocNorm[] = docs;
     let usedSearchOrder = false;
 
-    // Search if query
-    if (query.trim()) {
+    // Search if query and search is ready
+    if (query.trim() && isSearchReady) {
       const searchResults = search(query.trim());
       base = searchResults.map(r => r.doc);
       usedSearchOrder = true;
+    } else if (query.trim() && !isSearchReady) {
+      // Fallback to simple text search when index isn't ready
+      const q = query.toLowerCase();
+      base = base.filter(doc => 
+        doc.title.toLowerCase().includes(q) ||
+        doc.summary.toLowerCase().includes(q) ||
+        doc.type.toLowerCase().includes(q)
+      );
     }
 
     // Type filters

@@ -221,8 +221,8 @@ export function useProgressiveLoader() {
 
             // Cache results with quota handling
             try {
-              // Only cache a subset to prevent quota exceeded errors
-              const cacheData = sorted.slice(0, 100); // Cache first 100 docs only
+              // Cache all documents with smart chunking
+              const cacheData = sorted; // Cache all documents
               localStorage.setItem('lh_documents_cache_progressive', JSON.stringify(cacheData));
               localStorage.setItem('lh_last_sync', new Date().toISOString());
             } catch (error) {

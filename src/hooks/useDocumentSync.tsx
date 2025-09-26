@@ -65,11 +65,8 @@ const LOCAL_DATA_URLS = [
   '/data/all/latest.json' // Merged structure
 ];
 
-// Fallback remote URLs if local files are not available
-const REMOTE_DATA_URLS = [
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/latest.json",
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all_latest.json"
-];
+// Currently no working remote URLs - data should be generated locally by GitHub Actions
+const REMOTE_DATA_URLS: string[] = [];
 
 const SYNC_INTERVAL = 60 * 60 * 1000; // 1 hour
 const STORAGE_KEYS = {
@@ -266,9 +263,11 @@ async function fetchDocuments(
     return { docs: catalog, stats };
   }
   
-  // Fallback to remote fetch if local files are empty or unavailable
-  console.log('Local data not available, fetching from remote sources...');
-  return await fetchRemoteDocuments(onProgress);
+  // No remote sources available - return empty data
+  console.log('Local data not available. Data will be generated when GitHub Actions run.');
+  
+  const stats = { fetched: 0, processed: 0, filtered: 0 };
+  return { docs: [], stats };
 }
 
 function getSeenIds(): Set<string> {

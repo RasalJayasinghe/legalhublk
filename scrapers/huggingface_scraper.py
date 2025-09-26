@@ -8,6 +8,8 @@ def fetch_hf_acts_full() -> List[Dict[str, Any]]:
     """Fetch full Acts documents from Hugging Face dataset"""
     try:
         from datasets import load_dataset
+        # Check if dataset exists first
+        print("Attempting to load nuuuwan/lk-acts-docs dataset...")
         dataset = load_dataset("nuuuwan/lk-acts-docs")
         
         items = []
@@ -43,12 +45,16 @@ def fetch_hf_acts_full() -> List[Dict[str, Any]]:
         return []
     except Exception as e:
         print(f"Error fetching HF Acts full documents: {e}")
+        print("Note: The dataset 'nuuuwan/lk-acts-docs' may not exist on Hugging Face.")
+        print("Please create this dataset or use an alternative data source.")
         return []
 
 def fetch_hf_acts_chunks() -> List[Dict[str, Any]]:
     """Fetch Acts chunks from Hugging Face dataset"""
     try:
         from datasets import load_dataset
+        # Check if dataset exists first
+        print("Attempting to load nuuuwan/lk-acts-chunks dataset...")
         dataset = load_dataset("nuuuwan/lk-acts-chunks")
         
         items = []
@@ -87,6 +93,8 @@ def fetch_hf_acts_chunks() -> List[Dict[str, Any]]:
         return []
     except Exception as e:
         print(f"Error fetching HF Acts chunks: {e}")
+        print("Note: The dataset 'nuuuwan/lk-acts-chunks' may not exist on Hugging Face.")
+        print("Please create this dataset or use an alternative data source.")
         return []
 
 def run_hf_acts_full(out_dir: str):

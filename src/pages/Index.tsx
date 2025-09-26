@@ -28,6 +28,8 @@ import { useProgressiveLoader } from "@/hooks/useProgressiveLoader";
 import { useLazySearch } from "@/hooks/useLazySearch";
 import { InstantUI } from "@/components/instant-ui";
 import { VirtualList } from "@/components/virtual-list";
+import { DocumentContentViewer } from '@/components/document-content-viewer';
+import { EmptyState } from '@/components/empty-state';
 import type { DateRange } from "react-day-picker";
 
 const PAGE_SIZE = 20;
@@ -815,13 +817,24 @@ const Index = () => {
           </InstantUI>
 
           {/* Empty State */}
-          {!loading && visible.length === 0 && (
+          {!loading && visible.length === 0 && docs.length === 0 && (
+            <EmptyState onRefresh={refreshData} isLoading={loading} />
+          )}
+          
+          {!loading && visible.length === 0 && docs.length > 0 && (
             <p className="text-muted-foreground text-center py-12">
               No results found. Try adjusting your search or filters.
             </p>
           )}
         </div>
       </main>
+
+      {/* Document Content Viewer */}
+      <DocumentContentViewer
+        document={selectedDocument}
+        open={showDocumentViewer}
+        onClose={closeDocumentViewer}
+      />
 
       {/* Interest Validation Popup */}
       <InterestPopup

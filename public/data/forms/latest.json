@@ -1,0 +1,17 @@
+{
+  "updated_at": "2025-09-26T02:00:00Z",
+  "count": 1,
+  "documents": [
+    {
+      "id": "2024-11-27-sample-form",
+      "title": "Application Form - Business Registration",
+      "date": "2024-11-27",
+      "type": "Form",
+      "summary": "Official form for business registration application",
+      "pdfUrl": "",
+      "rawTypeName": "forms",
+      "languages": ["en", "si", "ta"],
+      "source": "documents.gov.lk"
+    }
+  ]
+}

@@ -56,39 +56,6 @@
       "rawTypeName": "forms",
       "languages": ["en", "si", "ta"],
       "source": "documents.gov.lk"
-    },
-    {
-      "id": "2024-11-26-public-notice",
-      "title": "Public Notice - Road Closure",
-      "date": "2024-11-26",
-      "type": "Gazette",
-      "summary": "Official notice regarding temporary road closure for construction",
-      "pdfUrl": "",
-      "rawTypeName": "gazettes",
-      "languages": ["en", "si", "ta"],
-      "source": "documents.gov.lk"
-    },
-    {
-      "id": "2024-11-25-education-act",
-      "title": "Education Reform Act 2024",
-      "date": "2024-11-25",
-      "type": "Act",
-      "summary": "Comprehensive education system reform legislation",
-      "pdfUrl": "",
-      "rawTypeName": "acts",
-      "languages": ["en", "si"],
-      "source": "documents.gov.lk"
-    },
-    {
-      "id": "2024-11-24-public-notice",
-      "title": "Public Notice - License Renewal",
-      "date": "2024-11-24",
-      "type": "Notice",
-      "summary": "Notice regarding deadline for professional license renewal",
-      "pdfUrl": "",
-      "rawTypeName": "notices",
-      "languages": ["en", "si"],
-      "source": "documents.gov.lk"
     }
   ]
 }

@@ -67,7 +67,8 @@ const LOCAL_DATA_URLS = [
 
 // Fallback remote URLs if local files are not available
 const REMOTE_DATA_URLS = [
-  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all.json",
+  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/latest.json",
+  "https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all_latest.json"
 ];
 
 const SYNC_INTERVAL = 60 * 60 * 1000; // 1 hour

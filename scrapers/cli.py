@@ -3,6 +3,7 @@ from . import gazettes, extra_gazettes
 from .list_scraper import run as run_list
 from .forms_notices_scraper import run_forms, run_notices
 from .acts_bills_scraper import run_acts, run_bills
+from .huggingface_scraper import run_hf_acts_full, run_hf_acts_chunks
 from .common.io import write_all_latest
 
 def main():
@@ -23,6 +24,13 @@ def main():
         p = sub.add_parser(k)
         p.add_argument("--out", type=str, default=f"public/data/{k}")
 
+    # Hugging Face dataset commands
+    hf_full = sub.add_parser("hf-acts-full")
+    hf_full.add_argument("--out", type=str, default="public/data/hf-acts-full")
+    
+    hf_chunks = sub.add_parser("hf-acts-chunks")
+    hf_chunks.add_argument("--out", type=str, default="public/data/hf-acts-chunks")
+
     merge = sub.add_parser("merge-latest")
     merge.add_argument("--root", type=str, default="public/data")
 
@@ -40,6 +48,10 @@ def main():
         run_acts(args.out)
     elif args.cmd == "bills":
         run_bills(args.out)
+    elif args.cmd == "hf-acts-full":
+        run_hf_acts_full(args.out)
+    elif args.cmd == "hf-acts-chunks":
+        run_hf_acts_chunks(args.out)
     elif args.cmd == "merge-latest":
         # read per-type latest and build fast "all/latest.json"
         import json, glob

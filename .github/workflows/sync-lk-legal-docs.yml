@@ -18,6 +18,8 @@ jobs:
           - { cmd: "bills --out public/data/bills" }
           - { cmd: "forms --out public/data/forms" }
           - { cmd: "notices --out public/data/notices" }
+          - { cmd: "hf-acts-full --out public/data/hf-acts-full" }
+          - { cmd: "hf-acts-chunks --out public/data/hf-acts-chunks" }
           - { cmd: "merge-latest --root public/data" }   # tiny, super-fast homepage/search feed
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +39,8 @@ jobs:
           source ~/.cargo/env
           python -m pip install --upgrade pip setuptools wheel
           pip install -r scrapers/requirements.txt
+          # Install datasets package for Hugging Face integration
+          pip install datasets>=2.14.0
       - name: Run ${{ matrix.job.cmd }}
         run: python -m scrapers.cli ${{ matrix.job.cmd }}
       - name: Commit changes (if any)

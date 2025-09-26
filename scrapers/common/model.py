@@ -14,6 +14,12 @@ class Item(BaseModel):
     summary: str = ""
     source: str = "documents.gov.lk"
     rawTypeName: str = ""               # site-specific label
+    
+    # Enhanced fields for Hugging Face datasets
+    full_content: Optional[str] = None  # Full document text content
+    chunk_content: Optional[str] = None # Chunked text content
+    metadata: Optional[dict] = None     # Additional metadata
+    chunk_metadata: Optional[dict] = None # Chunk-specific metadata
 
     @classmethod
     def make(cls, *, type: DocType, date: str, title: str, url: str,

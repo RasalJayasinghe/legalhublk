@@ -6,6 +6,11 @@ export interface LegalDocRaw {
   id: string;
   date: string;
   description: string;
+  // Enhanced fields for Hugging Face datasets
+  full_content?: string;
+  chunk_content?: string;
+  metadata?: Record<string, any>;
+  chunk_metadata?: Record<string, any>;
 }
 
 export interface LegalDocNorm {
@@ -16,6 +21,13 @@ export interface LegalDocNorm {
   summary: string;
   pdfUrl: string;
   rawTypeName: string;
+  // Enhanced fields for rich content
+  full_content?: string;
+  chunk_content?: string;
+  metadata?: Record<string, any>;
+  chunk_metadata?: Record<string, any>;
+  hasFullContent?: boolean;
+  isChunk?: boolean;
 }
 
 export interface SyncState {
@@ -41,12 +53,17 @@ export interface SyncState {
 }
 
 // Local data URLs - served from public/data directory
-const LOCAL_DATA_URLS = {
-  catalog: '/data/all/catalog.json',    // New merged structure
-  latest: '/data/all/latest.json',     // New merged structure
-  legacy_catalog: '/data/catalog.json', // Legacy fallback
-  legacy_latest: '/data/latest.json'    // Legacy fallback
-};
+const LOCAL_DATA_URLS = [
+  '/data/gazettes/latest.json',
+  '/data/extra-gazettes/latest.json',
+  '/data/acts/latest.json',
+  '/data/bills/latest.json',
+  '/data/forms/latest.json',
+  '/data/notices/latest.json',
+  '/data/hf-acts-full/latest.json',
+  '/data/hf-acts-chunks/latest.json',
+  '/data/all/latest.json' // Merged structure
+];
 
 // Fallback remote URLs if local files are not available
 const REMOTE_DATA_URLS = [
@@ -86,6 +103,13 @@ function normalize(raw: LegalDocRaw): LegalDocNorm | null {
       summary: raw.description || '',
       pdfUrl: "",
       rawTypeName: raw.doc_type_name,
+      // Enhanced content fields
+      full_content: raw.full_content,
+      chunk_content: raw.chunk_content,
+      metadata: raw.metadata,
+      chunk_metadata: raw.chunk_metadata,
+      hasFullContent: Boolean(raw.full_content),
+      isChunk: Boolean(raw.chunk_content)
     };
   } catch {
     return null;
@@ -119,32 +143,41 @@ async function fetchDocumentCount(): Promise<number> {
 
 async function fetchLocalDocuments(): Promise<{ catalog: LegalDocNorm[]; latest: LegalDocNorm[] }> {
   try {
-    // Try new merged structure first
-    const catalogResponse = await fetch(LOCAL_DATA_URLS.catalog);
-    const latestResponse = await fetch(LOCAL_DATA_URLS.latest);
+    const allDocs: LegalDocNorm[] = [];
+    let foundAny = false;
     
-    if (catalogResponse.ok && latestResponse.ok) {
-      const catalogData = await catalogResponse.json();
-      const latestData = await latestResponse.json();
-      
-      return {
-        catalog: catalogData.documents || [],
-        latest: latestData.documents || []
-      };
+    // Fetch from all local data sources
+    for (const url of LOCAL_DATA_URLS) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          const docs = data.documents || [];
+          allDocs.push(...docs);
+          foundAny = true;
+        }
+      } catch (error) {
+        // Continue with other sources
+        continue;
+      }
     }
     
-    // Fallback to legacy structure
-    console.log('New structure not available, trying legacy...');
-    const legacyCatalogResponse = await fetch(LOCAL_DATA_URLS.legacy_catalog);
-    const legacyLatestResponse = await fetch(LOCAL_DATA_URLS.legacy_latest);
-    
-    if (legacyCatalogResponse.ok && legacyLatestResponse.ok) {
-      const catalogData = await legacyCatalogResponse.json();
-      const latestData = await legacyLatestResponse.json();
+    if (foundAny) {
+      // Remove duplicates by ID and sort by date
+      const uniqueDocs = new Map<string, LegalDocNorm>();
+      allDocs.forEach(doc => {
+        const existing = uniqueDocs.get(doc.id);
+        if (!existing || doc.date > existing.date) {
+          uniqueDocs.set(doc.id, doc);
+        }
+      });
+      
+      const sortedDocs = Array.from(uniqueDocs.values())
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       return {
-        catalog: catalogData.documents || [],
-        latest: latestData.documents || []
+        catalog: sortedDocs,
+        latest: sortedDocs.slice(0, 300) // Latest subset
       };
     }
   } catch (error) {
@@ -265,6 +298,7 @@ function getCachedDocs(): LegalDocNorm[] {
 
 function setCachedDocs(docs: LegalDocNorm[]) {
   try {
+    // Don't limit cache size anymore - store all documents
     localStorage.setItem(STORAGE_KEYS.DOCS, JSON.stringify(docs));
     localStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
   } catch {
@@ -506,20 +540,17 @@ export function useDocumentSync() {
         gitCommitUrl
       }));
 
-      if (newDocs.length > 0) {
-        toast.success(`Found ${newDocs.length} new documents!`);
-      }
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sync documents';
+    } catch (error: any) {
+      console.error('Sync error:', error);
       setState(prev => ({
         ...prev,
         loading: false,
-        error: errorMessage,
+        error: error?.message || 'Failed to sync documents',
         loadingStage: "Error",
         loadingProgress: 0
       }));
-      toast.error(errorMessage);
+      
+      toast.error(`Failed to sync documents: ${error?.message || 'Unknown error'}`);
     } finally {
       isLoadingRef.current = false;
     }
@@ -539,19 +570,24 @@ export function useDocumentSync() {
 
   const markAllAsSeen = useCallback(() => {
     const allIds = state.docs.map(doc => doc.id);
-    markDocumentsAsSeen(allIds);
-    toast.success('All documents marked as seen');
-  }, [state.docs, markDocumentsAsSeen]);
+    setSeenIds(allIds);
+    
+    setState(prev => ({
+      ...prev,
+      newDocuments: [],
+      hasNewDocuments: false
+    }));
+  }, [state.docs]);
 
   const refreshData = useCallback(() => {
     syncDocuments(true);
   }, [syncDocuments]);
 
-  // Initial load and setup interval
+  // Initial sync and periodic updates
   useEffect(() => {
     syncDocuments();
 
-    // Setup automatic sync every hour
+    // Set up interval for auto-sync
     intervalRef.current = setInterval(() => {
       syncDocuments();
     }, SYNC_INTERVAL);
@@ -566,8 +602,8 @@ export function useDocumentSync() {
   return {
     ...state,
     syncDocuments,
-    refreshData,
     markDocumentsAsSeen,
-    markAllAsSeen
+    markAllAsSeen,
+    refreshData
   };
 }

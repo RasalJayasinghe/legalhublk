@@ -87,6 +87,8 @@ const Index = () => {
   const [dateFilter, setDateFilter] = useState<"all" | "this-year" | "last-year" | "last-2-years">("all");
   const [showNewBanner, setShowNewBanner] = useState(true);
   const [showOnlyNew, setShowOnlyNew] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
 
   // Sort mode
   const [sortMode, setSortMode] = useState<"newest" | "relevance">("newest");
@@ -301,6 +303,16 @@ const Index = () => {
     } finally {
       setOpeningId(null);
     }
+  };
+
+  const handleDocumentClick = (doc: any) => {
+    setSelectedDocument(doc);
+    setShowDocumentViewer(true);
+  };
+
+  const closeDocumentViewer = () => {
+    setShowDocumentViewer(false);
+    setSelectedDocument(null);
   };
 
   const handleViewNew = () => {
@@ -720,8 +732,9 @@ const Index = () => {
                 return (
                   <Card 
                     key={d.id} 
-                    className="group hover:shadow-md transition-all duration-200 hover:scale-[1.02] animate-fade-in"
+                    className="group hover:shadow-md transition-all duration-200 hover:scale-[1.02] animate-fade-in cursor-pointer"
                     style={{ animationDelay: `${(index % PAGE_SIZE) * 50}ms` }}
+                    onClick={() => handleDocumentClick(d)}
                   >
                     <CardContent className="p-5">
                       <div className="flex items-start gap-3 animate-scale-in">
@@ -744,6 +757,16 @@ const Index = () => {
                                 {(d.type === "Form" || d.type === "Notice") && (
                                   <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                                     NEW
+                                  </Badge>
+                                )}
+                                {d.hasFullContent && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Full Text
+                                  </Badge>
+                                )}
+                                {d.isChunk && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Searchable Chunk
                                   </Badge>
                                 )}
                               </div>

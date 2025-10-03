@@ -4,6 +4,7 @@ from .list_scraper import run as run_list
 from .forms_notices_scraper import run_forms, run_notices
 from .acts_bills_scraper import run_acts, run_bills
 from .huggingface_scraper import run_hf_acts_full, run_hf_acts_chunks
+from .github_repo_scraper import run_github_acts, run_github_extraordinary_gazettes, run_github_bills
 from .common.io import write_all_latest
 
 def main():
@@ -31,6 +32,16 @@ def main():
     hf_chunks = sub.add_parser("hf-acts-chunks")
     hf_chunks.add_argument("--out", type=str, default="public/data/hf-acts-chunks")
 
+    # GitHub repository data commands
+    gh_acts = sub.add_parser("github-acts")
+    gh_acts.add_argument("--out", type=str, default="public/data/github-acts")
+    
+    gh_ex_gaz = sub.add_parser("github-extraordinary-gazettes")
+    gh_ex_gaz.add_argument("--out", type=str, default="public/data/github-extraordinary-gazettes")
+    
+    gh_bills = sub.add_parser("github-bills")
+    gh_bills.add_argument("--out", type=str, default="public/data/github-bills")
+
     merge = sub.add_parser("merge-latest")
     merge.add_argument("--root", type=str, default="public/data")
 
@@ -52,6 +63,12 @@ def main():
         run_hf_acts_full(args.out)
     elif args.cmd == "hf-acts-chunks":
         run_hf_acts_chunks(args.out)
+    elif args.cmd == "github-acts":
+        run_github_acts(args.out)
+    elif args.cmd == "github-extraordinary-gazettes":
+        run_github_extraordinary_gazettes(args.out)
+    elif args.cmd == "github-bills":
+        run_github_bills(args.out)
     elif args.cmd == "merge-latest":
         # read per-type latest and build fast "all/latest.json"
         import json, glob

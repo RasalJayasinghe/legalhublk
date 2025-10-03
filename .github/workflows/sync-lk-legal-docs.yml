@@ -20,6 +20,9 @@ jobs:
           - { cmd: "notices --out public/data/notices" }
           - { cmd: "hf-acts-full --out public/data/hf-acts-full" }
           - { cmd: "hf-acts-chunks --out public/data/hf-acts-chunks" }
+          - { cmd: "github-acts --out public/data/github-acts" }
+          - { cmd: "github-extraordinary-gazettes --out public/data/github-extraordinary-gazettes" }
+          - { cmd: "github-bills --out public/data/github-bills" }
           - { cmd: "merge-latest --root public/data" }   # tiny, super-fast homepage/search feed
     steps:
       - uses: actions/checkout@v4

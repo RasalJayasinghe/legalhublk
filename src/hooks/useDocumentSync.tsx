@@ -62,6 +62,9 @@ const LOCAL_DATA_URLS = [
   '/data/notices/latest.json',
   '/data/hf-acts-full/latest.json',
   '/data/hf-acts-chunks/latest.json',
+  '/data/github-acts/latest.json',
+  '/data/github-extraordinary-gazettes/latest.json',
+  '/data/github-bills/latest.json',
   '/data/all/latest.json' // Merged structure
 ];
 

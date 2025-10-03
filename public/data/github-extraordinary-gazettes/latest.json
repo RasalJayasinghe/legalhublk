@@ -1,0 +1,116 @@
+{
+  "updated_at": "2025-01-03T12:00:00Z",
+  "count": 10,
+  "documents": [
+    {
+      "id": "2024-2450-35",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2450/35 - Presidential Appointments",
+      "date": "2024-01-18",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2024/2450-35/document.en.pdf",
+      "summary": "Notification of appointments to key government positions",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2024-2450-34",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2450/34 - Emergency Regulations",
+      "date": "2024-01-15",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2024/2450-34/document.en.pdf",
+      "summary": "Proclamation regarding emergency regulations",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-88",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/88 - Tax Amendments",
+      "date": "2023-12-28",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-88/document.en.pdf",
+      "summary": "Notification of amendments to tax regulations",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-87",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/87 - Public Holidays",
+      "date": "2023-12-25",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-87/document.en.pdf",
+      "summary": "Declaration of public holidays for the year 2024",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-86",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/86 - Ministerial Changes",
+      "date": "2023-12-20",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-86/document.en.pdf",
+      "summary": "Changes to ministerial portfolios and assignments",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-85",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/85 - Import Regulations",
+      "date": "2023-12-15",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-85/document.en.pdf",
+      "summary": "Updated regulations on import duties and restrictions",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-84",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/84 - Exchange Control",
+      "date": "2023-12-10",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-84/document.en.pdf",
+      "summary": "Amendments to exchange control regulations",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-83",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/83 - Fuel Pricing",
+      "date": "2023-12-05",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-83/document.en.pdf",
+      "summary": "Revision of fuel prices and related regulations",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-82",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/82 - Electoral Regulations",
+      "date": "2023-11-30",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-82/document.en.pdf",
+      "summary": "Regulations pertaining to electoral procedures",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2023-2449-81",
+      "type": "Extraordinary Gazette",
+      "title": "Extraordinary Gazette No. 2449/81 - Land Acquisition",
+      "date": "2023-11-25",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_extraordinary_gazettes/data_lk_extraordinary_gazettes/2020s/2023/2449-81/document.en.pdf",
+      "summary": "Notification of land acquisitions for public purposes",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    }
+  ]
+}

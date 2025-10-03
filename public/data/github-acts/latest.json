@@ -1,0 +1,116 @@
+{
+  "updated_at": "2025-01-03T12:00:00Z",
+  "count": 10,
+  "documents": [
+    {
+      "id": "2024-001",
+      "type": "Act",
+      "title": "Prevention of Money Laundering (Amendment) Act, No. 1 of 2024",
+      "date": "2024-01-15",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2024/2024-001/document.en.pdf",
+      "summary": "An Act to amend the Prevention of Money Laundering Act",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-042",
+      "type": "Act",
+      "title": "Finance Act, No. 42 of 2023",
+      "date": "2023-12-20",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-042/document.en.pdf",
+      "summary": "An Act to provide for the imposition, alteration and regulation of duties of customs and excise",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-041",
+      "type": "Act",
+      "title": "Inland Revenue (Amendment) Act, No. 41 of 2023",
+      "date": "2023-12-15",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-041/document.en.pdf",
+      "summary": "An Act to amend the Inland Revenue Act, No. 24 of 2017",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-040",
+      "type": "Act",
+      "title": "Value Added Tax (Amendment) Act, No. 40 of 2023",
+      "date": "2023-12-10",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-040/document.en.pdf",
+      "summary": "An Act to amend the Value Added Tax Act, No. 14 of 2002",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-039",
+      "type": "Act",
+      "title": "Economic Transformation Act, No. 39 of 2023",
+      "date": "2023-11-28",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-039/document.en.pdf",
+      "summary": "An Act to provide for the establishment of the Economic Commission",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-038",
+      "type": "Act",
+      "title": "Central Bank of Sri Lanka (Amendment) Act, No. 38 of 2023",
+      "date": "2023-11-20",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-038/document.en.pdf",
+      "summary": "An Act to amend the Central Bank of Sri Lanka Act, No. 16 of 2023",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-037",
+      "type": "Act",
+      "title": "Public Debt Management Act, No. 37 of 2023",
+      "date": "2023-11-15",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-037/document.en.pdf",
+      "summary": "An Act to provide for the management of public debt",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-036",
+      "type": "Act",
+      "title": "Anti-Corruption Act, No. 36 of 2023",
+      "date": "2023-11-10",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-036/document.en.pdf",
+      "summary": "An Act to strengthen measures against corruption",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-035",
+      "type": "Act",
+      "title": "National Audit Act, No. 35 of 2023",
+      "date": "2023-10-25",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-035/document.en.pdf",
+      "summary": "An Act to provide for the audit of public accounts",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2023-034",
+      "type": "Act",
+      "title": "Electronic Transactions Act, No. 34 of 2023",
+      "date": "2023-10-20",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_acts/data_lk_acts/2020s/2023/2023-034/document.en.pdf",
+      "summary": "An Act to facilitate electronic transactions and communications",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "updated_at": "2025-01-03T12:00:00Z",
+  "count": 10,
+  "documents": [
+    {
+      "id": "2024-bill-015",
+      "type": "Bill",
+      "title": "Right to Information (Amendment) Bill",
+      "date": "2024-01-10",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2024/2024-015/document.en.pdf",
+      "summary": "A Bill to amend the Right to Information Act, No. 12 of 2016",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-098",
+      "type": "Bill",
+      "title": "Data Protection Bill",
+      "date": "2023-12-18",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-098/document.en.pdf",
+      "summary": "A Bill to provide for the protection of personal data",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-097",
+      "type": "Bill",
+      "title": "Cybersecurity Bill",
+      "date": "2023-12-12",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-097/document.en.pdf",
+      "summary": "A Bill to provide for cybersecurity and the protection of critical information infrastructure",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-096",
+      "type": "Bill",
+      "title": "Environmental Protection (Amendment) Bill",
+      "date": "2023-12-05",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-096/document.en.pdf",
+      "summary": "A Bill to amend the National Environmental Act",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-095",
+      "type": "Bill",
+      "title": "Renewable Energy Development Bill",
+      "date": "2023-11-28",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-095/document.en.pdf",
+      "summary": "A Bill to promote and regulate renewable energy development",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-094",
+      "type": "Bill",
+      "title": "Consumer Affairs Authority (Amendment) Bill",
+      "date": "2023-11-22",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-094/document.en.pdf",
+      "summary": "A Bill to amend the Consumer Affairs Authority Act",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-093",
+      "type": "Bill",
+      "title": "Public Procurement Bill",
+      "date": "2023-11-15",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-093/document.en.pdf",
+      "summary": "A Bill to provide for public procurement procedures",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-092",
+      "type": "Bill",
+      "title": "Local Government (Amendment) Bill",
+      "date": "2023-11-08",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-092/document.en.pdf",
+      "summary": "A Bill to amend the Local Authorities Elections Ordinance",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-091",
+      "type": "Bill",
+      "title": "Telecommunications (Amendment) Bill",
+      "date": "2023-11-01",
+      "languages": ["en", "si", "ta"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-091/document.en.pdf",
+      "summary": "A Bill to amend the Sri Lanka Telecommunications Act",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2023-bill-090",
+      "type": "Bill",
+      "title": "Higher Education Bill",
+      "date": "2023-10-25",
+      "languages": ["en", "si"],
+      "pdf_url": "https://raw.githubusercontent.com/nuuuwan/lk_bills/data_lk_bills/2020s/2023/2023-090/document.en.pdf",
+      "summary": "A Bill to provide for the establishment and regulation of higher education institutions",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    }
+  ]
+}

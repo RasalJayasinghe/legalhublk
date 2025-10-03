@@ -36,25 +36,40 @@ export function useProgressiveLoader() {
         try {
           const date = new Date(raw.date);
           if (isNaN(date.getTime())) return null;
-          
+
           const typeMap = {
             'acts': 'Act',
-            'bills': 'Bill', 
+            'bills': 'Bill',
             'gazettes': 'Gazette',
-            'extra-gazettes': 'Extraordinary Gazette'
+            'extra-gazettes': 'Extraordinary Gazette',
+            'forms': 'Form',
+            'notices': 'Notice'
           };
-          
-          const displayType = typeMap[raw.doc_type_name] || raw.doc_type_name;
-          const title = raw.description || 'Untitled';
-          
+          const reverseTypeMap = {
+            'Act': 'acts',
+            'Bill': 'bills',
+            'Gazette': 'gazettes',
+            'Extraordinary Gazette': 'extra-gazettes',
+            'Form': 'forms',
+            'Notice': 'notices'
+          };
+
+          // Support both 'Item' shape (type/title/summary/pdf_url/rawTypeName)
+          // and 'Raw' shape (doc_type_name/description)
+          const displayType = raw.type || typeMap[raw.doc_type_name] || raw.doc_type_name || '';
+          const title = raw.title || raw.description || raw.summary || 'Untitled';
+          const summary = raw.summary || raw.description || title;
+          const pdfUrl = raw.pdf_url || raw.detail_url || '';
+          const rawTypeName = raw.rawTypeName || reverseTypeMap[displayType] || raw.doc_type_name || '';
+
           return {
             id: raw.id,
             title,
             date: raw.date,
-            type: displayType,
-            summary: raw.description || '',
-            pdfUrl: "",
-            rawTypeName: raw.doc_type_name,
+            type: displayType || 'Document',
+            summary,
+            pdfUrl,
+            rawTypeName
           };
         } catch {
           return null;

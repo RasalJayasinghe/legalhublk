@@ -37,8 +37,8 @@ const DOC_TYPES = ["Gazette", "Extraordinary Gazette", "Act", "Bill", "Form", "N
 
 type TypeFilter = typeof DOC_TYPES[number];
 
-function typeIcon(type: string) {
-  const t = type.toLowerCase();
+function typeIcon(type?: string) {
+  const t = (type || '').toLowerCase();
   if (t.includes("act")) return ScrollText;
   if (t.includes("bill")) return FileText;
   if (t.includes("form")) return FileText;

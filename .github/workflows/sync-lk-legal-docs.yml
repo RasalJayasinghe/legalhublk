@@ -2,8 +2,8 @@ name: Sync Legal Data (documents.gov.lk)
 
 on:
   schedule:
-    - cron: "0 */2 * * *"   # Every 2 hours for more frequent updates
-  workflow_dispatch:
+    - cron: "0 0 * * *"   # Once daily at midnight UTC
+  workflow_dispatch:        # Allow manual triggers
 
 jobs:
   sync:

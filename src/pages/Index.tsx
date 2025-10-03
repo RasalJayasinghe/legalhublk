@@ -56,7 +56,8 @@ const Index = () => {
   // Prioritize progressive loader when it has more data (full dataset)
   const docs = progressiveLoader.docs.length >= syncHook.docs.length ? progressiveLoader.docs : syncHook.docs;
   const loading = progressiveLoader.loading && syncHook.loading;
-  const error = progressiveLoader.error || syncHook.error;
+  // Only show error if we have no documents at all
+  const error = docs.length === 0 ? (progressiveLoader.error || syncHook.error) : null;
   
   // Use sync hook data for UI state
   const {

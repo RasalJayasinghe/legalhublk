@@ -139,18 +139,29 @@ export function useProgressiveLoader() {
         }
       }
 
-      // Fetch fresh data
-      const response = await fetch(
-        `https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/all.json?t=${now}`,
-        {
-          headers: { Accept: "application/json" },
-          cache: "no-store"
-        }
-      );
+      // Fetch fresh data from local source
+      const localUrl = `/data/all/latest.json?t=${now}`;
+      const response = await fetch(localUrl, {
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      });
 
-      if (!response.ok) throw new Error('Failed to fetch documents');
+      // Check if response is actually JSON (not HTML)
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok || !contentType.includes("application/json")) {
+        // File not present yet - exit gracefully without error
+        setState(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: null,
+          initialLoadComplete: true 
+        }));
+        processingRef.current = false;
+        return;
+      }
       
-      const rawDocs: LegalDocRaw[] = await response.json();
+      const data = await response.json();
+      const rawDocs: LegalDocRaw[] = Array.isArray(data) ? data : data.documents || data.items || [];
       setState(prev => ({ 
         ...prev, 
         totalCount: rawDocs.length,

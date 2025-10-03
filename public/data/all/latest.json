@@ -1,0 +1,66 @@
+{
+  "updated_at": "2025-01-03T10:00:00Z",
+  "count": 5,
+  "documents": [
+    {
+      "id": "2025-01-15-act001",
+      "type": "Act",
+      "title": "Sample Act for Testing - This will be replaced when GitHub Actions runs",
+      "date": "2025-01-15",
+      "languages": ["en"],
+      "pdf_url": null,
+      "detail_url": null,
+      "summary": "This is sample data to demonstrate the system. Real data will appear once the GitHub Actions workflow runs.",
+      "source": "documents.gov.lk",
+      "rawTypeName": "acts"
+    },
+    {
+      "id": "2025-01-10-gazette001",
+      "type": "Gazette",
+      "title": "Sample Gazette Notice",
+      "date": "2025-01-10",
+      "languages": ["en"],
+      "pdf_url": null,
+      "detail_url": null,
+      "summary": "Sample gazette for testing purposes. Awaiting real data from scraper.",
+      "source": "documents.gov.lk",
+      "rawTypeName": "gazettes"
+    },
+    {
+      "id": "2025-01-08-extra-gaz001",
+      "type": "Extraordinary Gazette",
+      "title": "Sample Extraordinary Gazette",
+      "date": "2025-01-08",
+      "languages": ["en"],
+      "pdf_url": null,
+      "detail_url": null,
+      "summary": "Sample extraordinary gazette entry.",
+      "source": "documents.gov.lk",
+      "rawTypeName": "extra-gazettes"
+    },
+    {
+      "id": "2024-12-20-bill001",
+      "type": "Bill",
+      "title": "Sample Bill Document",
+      "date": "2024-12-20",
+      "languages": ["en"],
+      "pdf_url": null,
+      "detail_url": null,
+      "summary": "Sample bill for demonstration.",
+      "source": "documents.gov.lk",
+      "rawTypeName": "bills"
+    },
+    {
+      "id": "2024-12-15-form001",
+      "type": "Form",
+      "title": "Sample Form Document",
+      "date": "2024-12-15",
+      "languages": ["en"],
+      "pdf_url": null,
+      "detail_url": null,
+      "summary": "Sample form document entry.",
+      "source": "documents.gov.lk",
+      "rawTypeName": "forms"
+    }
+  ]
+}

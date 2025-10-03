@@ -11,11 +11,11 @@ interface LegalDocNorm {
   type: string;
   title: string;
   date: string;
-  languages: string[];
+  languages?: string[];
   pdf_url?: string;
   detail_url?: string;
   summary: string;
-  source: string;
+  source?: string;
   rawTypeName: string;
   full_content?: string;
   chunk_content?: string;
@@ -58,10 +58,12 @@ export function DocumentContentViewer({ document, open, onClose }: DocumentConte
                   <Calendar className="h-3 w-3" />
                   {document.date}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Globe className="h-3 w-3" />
-                  {document.source}
-                </span>
+                {document.source && (
+                  <span className="flex items-center gap-1">
+                    <Globe className="h-3 w-3" />
+                    {document.source}
+                  </span>
+                )}
               </DialogDescription>
             </div>
             <div className="flex gap-2 ml-4">
@@ -138,7 +140,7 @@ export function DocumentContentViewer({ document, open, onClose }: DocumentConte
                   <p className="text-sm leading-relaxed">{document.summary}</p>
                 </div>
                 
-                {document.languages.length > 0 && (
+                {document.languages && document.languages.length > 0 && (
                   <div>
                     <h4 className="font-medium text-sm mb-2">Languages</h4>
                     <div className="flex gap-1">

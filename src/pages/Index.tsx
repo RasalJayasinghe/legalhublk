@@ -509,7 +509,7 @@ const Index = () => {
 
             {/* Desktop Tagline */}
             <p className="text-muted-foreground max-w-2xl mb-4 text-sm md:text-base">
-              Every Gazette, Act & Bill — in one place.
+              LegalHub — Every Gazette, Act & Bill — in one place.
             </p>
 
             {/* Desktop Search Section */}

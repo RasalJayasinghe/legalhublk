@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ExternalLink, FileText, Layers, Calendar, Tag, Globe } from 'lucide-react';
+import openTagBranding from '@/assets/open-tag-branding.png';
 
 interface LegalDocNorm {
   id: string;
@@ -45,6 +46,15 @@ export function DocumentContentViewer({ document, open, onClose }: DocumentConte
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        {/* Branding Header */}
+        <div className="w-full mb-4">
+          <img 
+            src={openTagBranding} 
+            alt="LegalHub - Sri Lankan Legal Documents Search" 
+            className="w-full h-auto rounded-lg"
+          />
+        </div>
+        
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">

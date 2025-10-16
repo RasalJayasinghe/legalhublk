@@ -289,25 +289,8 @@ const Index = () => {
 
   const [openingId, setOpeningId] = useState<string | null>(null);
   const openPdf = async (d: LegalDocNorm) => {
-    try {
-      setOpeningId(d.id);
-      
-      // Use the pdf_url directly from the document data
-      const pdfUrl = d.pdfUrl || d.detail_url;
-      
-      if (!pdfUrl) {
-        toast.error('PDF link not available for this document.');
-        return;
-      }
-      
-      // Open the PDF in a new tab
-      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      console.error('Error opening PDF:', e);
-      toast.error('Could not open PDF. Please try again.');
-    } finally {
-      setOpeningId(null);
-    }
+    // Just open the modal instead of opening the PDF directly
+    handleDocumentClick(d);
   };
 
   const handleDocumentClick = (doc: any) => {

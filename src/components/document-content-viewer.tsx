@@ -146,9 +146,20 @@ export function DocumentContentViewer({ document, open, onClose }: DocumentConte
                     <h4 className="font-medium text-sm mb-2">Languages</h4>
                     <div className="flex gap-1">
                       {document.languages.map((lang) => (
-                        <Badge key={lang} variant="outline" className="text-xs">
+                        <Button
+                          key={lang}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-7 px-3"
+                          onClick={() => {
+                            const pdfUrl = document.pdfUrl || document.pdf_url;
+                            if (pdfUrl) {
+                              window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+                            }
+                          }}
+                        >
                           {lang.toUpperCase()}
-                        </Badge>
+                        </Button>
                       ))}
                     </div>
                   </div>

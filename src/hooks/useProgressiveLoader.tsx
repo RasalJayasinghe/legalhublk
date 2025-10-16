@@ -37,30 +37,38 @@ export function useProgressiveLoader() {
           const date = new Date(raw.date);
           if (isNaN(date.getTime())) return null;
 
-          const typeMap = {
-            'acts': 'Act',
-            'bills': 'Bill',
-            'gazettes': 'Gazette',
-            'extra-gazettes': 'Extraordinary Gazette',
-            'forms': 'Form',
-            'notices': 'Notice'
-          };
-          const reverseTypeMap = {
-            'Act': 'acts',
-            'Bill': 'bills',
-            'Gazette': 'gazettes',
-            'Extraordinary Gazette': 'extra-gazettes',
-            'Form': 'forms',
-            'Notice': 'notices'
-          };
-
-          // Support both 'Item' shape (type/title/summary/pdf_url/rawTypeName)
-          // and 'Raw' shape (doc_type_name/description)
-          const displayType = raw.type || typeMap[raw.doc_type_name] || raw.doc_type_name || '';
-          const title = raw.title || raw.description || raw.summary || 'Untitled';
-          const summary = raw.summary || raw.description || title;
-          const pdfUrl = raw.pdf_url || raw.detail_url || '';
-          const rawTypeName = raw.rawTypeName || reverseTypeMap[displayType] || raw.doc_type_name || '';
+          // Support BOTH Item structure (from JSON files) AND Raw structure
+          let displayType, title, summary, pdfUrl, rawTypeName, languages, source, detail_url;
+          
+          if (raw.type) {
+            // Item structure from JSON files (has type, title, summary, pdf_url)
+            displayType = raw.type;
+            title = raw.title || raw.summary || 'Untitled';
+            summary = raw.summary || raw.title || '';
+            pdfUrl = raw.pdf_url || raw.detail_url || '';
+            rawTypeName = raw.rawTypeName || '';
+            languages = raw.languages || [];
+            source = raw.source || '';
+            detail_url = raw.detail_url || '';
+          } else {
+            // Raw structure from API (has doc_type_name, description)
+            const typeMap = {
+              'acts': 'Act',
+              'bills': 'Bill',
+              'gazettes': 'Gazette',
+              'extra-gazettes': 'Extraordinary Gazette',
+              'forms': 'Form',
+              'notices': 'Notice'
+            };
+            displayType = typeMap[raw.doc_type_name] || raw.doc_type_name || '';
+            title = raw.description || 'Untitled';
+            summary = raw.description || '';
+            pdfUrl = '';
+            rawTypeName = raw.doc_type_name || '';
+            languages = [];
+            source = '';
+            detail_url = '';
+          }
 
           return {
             id: raw.id,
@@ -69,7 +77,10 @@ export function useProgressiveLoader() {
             type: displayType || 'Document',
             summary,
             pdfUrl,
-            rawTypeName
+            rawTypeName,
+            languages,
+            source,
+            detail_url
           };
         } catch {
           return null;

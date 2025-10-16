@@ -21,6 +21,10 @@ export interface LegalDocNorm {
   summary: string;
   pdfUrl: string;
   rawTypeName: string;
+  languages?: string[];
+  source?: string;
+  detail_url?: string;
+  pdf_url?: string;
   // Enhanced fields for rich content
   full_content?: string;
   chunk_content?: string;

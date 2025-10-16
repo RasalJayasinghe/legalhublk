@@ -291,18 +291,20 @@ const Index = () => {
   const openPdf = async (d: LegalDocNorm) => {
     try {
       setOpeningId(d.id);
-      const year = d.date?.slice(0, 4);
-      if (!year) throw new Error('missing-year');
-      const metaUrl = `https://raw.githubusercontent.com/nuuuwan/lk_legal_docs/main/data/${d.rawTypeName}/${year}/${d.id}/metadata.json`;
-      const res = await fetch(metaUrl, { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error('meta-not-found');
-      const meta = await res.json();
-      const m = meta?.lang_to_source_url || {};
-      const pdf: string | undefined = m.en || m.si || m.ta || Object.values(m)[0] as string | undefined;
-      if (!pdf) throw new Error('no-pdf');
-      window.open(pdf, '_blank', 'noopener');
+      
+      // Use the pdf_url directly from the document data
+      const pdfUrl = d.pdfUrl || d.detail_url;
+      
+      if (!pdfUrl) {
+        toast.error('PDF link not available for this document.');
+        return;
+      }
+      
+      // Open the PDF in a new tab
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } catch (e) {
-      toast.error('Could not open PDF. It may be temporarily unavailable.');
+      console.error('Error opening PDF:', e);
+      toast.error('Could not open PDF. Please try again.');
     } finally {
       setOpeningId(null);
     }

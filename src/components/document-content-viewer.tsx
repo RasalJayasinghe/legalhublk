@@ -13,6 +13,7 @@ interface LegalDocNorm {
   date: string;
   languages?: string[];
   pdf_url?: string;
+  pdfUrl?: string;
   detail_url?: string;
   summary: string;
   source?: string;
@@ -67,13 +68,13 @@ export function DocumentContentViewer({ document, open, onClose }: DocumentConte
               </DialogDescription>
             </div>
             <div className="flex gap-2 ml-4">
-              {document.pdf_url && (
+              {(document.pdfUrl || document.pdf_url) && (
                 <Button
                   variant="outline"
                   size="sm"
                   asChild
                 >
-                  <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                  <a href={document.pdfUrl || document.pdf_url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4 mr-1" />
                     PDF
                   </a>

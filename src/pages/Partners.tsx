@@ -60,19 +60,20 @@ export default function Partners() {
       </nav>
 
       {/* Hero Section */}
-      <section className="py-12 md:py-20 px-4 bg-gradient-to-b from-background to-muted/20">
-        <div className="container mx-auto">
-          <div className="max-w-5xl mx-auto">
-            <img 
-              src={partnersHero} 
-              alt="Partner with LegalHub - Empower the Future of Legal Research" 
-              className="w-full h-auto rounded-xl shadow-2xl border border-border/50"
-            />
-          </div>
-          
-          {/* Subtitle */}
-          <div className="text-center max-w-3xl mx-auto mt-12 md:mt-16">
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed px-4">
+      <section className="bg-gradient-to-b from-background to-muted/20">
+        {/* Full-width Hero Image */}
+        <div className="w-full">
+          <img 
+            src={partnersHero} 
+            alt="Partner with LegalHub - Empower the Future of Legal Research" 
+            className="w-full h-auto object-cover"
+          />
+        </div>
+        
+        {/* Subtitle */}
+        <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="text-center max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
               We collaborate with forward-thinking law firms to bring Sri Lanka's legal knowledge online.
             </p>
           </div>

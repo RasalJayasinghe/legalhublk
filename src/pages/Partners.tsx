@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { CheckCircle2, Upload, DollarSign, Award, BarChart3 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Brand } from '@/components/brand';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { ShareButton } from '@/components/share-button';
 
 export default function Partners() {
   const [formData, setFormData] = useState({
@@ -43,31 +45,52 @@ export default function Partners() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      {/* Navigation - Same as homepage */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="text-xl font-bold">
-            LegalHub <span className="text-primary">LK</span>
-          </Link>
+          <div className="flex items-center justify-between">
+            <Brand className="shrink-0" />
+            <div className="flex items-center gap-2">
+              <ShareButton />
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-primary/10 to-background py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Partner with LegalHub — Empower the Future of Legal Research
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            We collaborate with forward-thinking law firms to bring Sri Lanka's legal knowledge online.
-          </p>
+      {/* Hero Section with Image Placeholder */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          {/* Image Placeholder - Recommended size: 1200x400px (3:1 aspect ratio) */}
+          <div className="mb-8 max-w-5xl mx-auto">
+            <div className="w-full aspect-[3/1] bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-border">
+              <div className="text-center p-8">
+                <p className="text-muted-foreground text-lg font-medium mb-2">
+                  📷 Partner Header Image
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  Recommended size: <strong>1200 × 400 pixels</strong> (3:1 aspect ratio)
+                </p>
+                <p className="text-muted-foreground text-xs mt-2">
+                  Upload a banner showcasing your partnership vision
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Subtitle */}
+          <div className="text-center max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground">
+              We collaborate with forward-thinking law firms to bring Sri Lanka's legal knowledge online.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 bg-card/30">
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Partner Benefits</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-foreground">Partner Benefits</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader>
@@ -237,7 +260,7 @@ export default function Partners() {
 
                 {/* Why Partner */}
                 <div className="space-y-2">
-                  <Label htmlFor="whyPartner">Why do you want to partner with LegalHub LK? *</Label>
+                  <Label htmlFor="whyPartner">Why do you want to partner with LegalHub? *</Label>
                   <Textarea
                     id="whyPartner"
                     required
@@ -275,9 +298,9 @@ export default function Partners() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8 mt-16">
+      <footer className="border-t py-8 mt-16 bg-background">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2025 LegalHub LK. All rights reserved.</p>
+          <p>© 2025 LegalHub. All rights reserved.</p>
         </div>
       </footer>
     </div>

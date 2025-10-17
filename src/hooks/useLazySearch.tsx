@@ -119,7 +119,7 @@ export function useLazySearch(docs: LegalDocNorm[]) {
     }
   }, [docs.length, searchIndex, isIndexing, buildSearchIndex]);
 
-  // Search function
+  // Search function with enhanced query handling
   const search = useMemo(() => {
     return (query: string): SearchResult[] => {
       if (!searchIndex || !query.trim()) {
@@ -128,9 +128,38 @@ export function useLazySearch(docs: LegalDocNorm[]) {
       }
 
       try {
-        console.log('Searching for:', query.trim());
-        const results = searchIndex.search(query.trim());
+        const trimmedQuery = query.trim();
+        console.log('Searching for:', trimmedQuery);
+        
+        // Build a more flexible search query
+        // For single words: add wildcard and boost exact matches
+        const terms = trimmedQuery.toLowerCase().split(/\s+/);
+        let lunrQuery = '';
+        
+        if (terms.length === 1 && terms[0].length > 0) {
+          // Single term: try exact, prefix wildcard, and fuzzy matching
+          const term = terms[0];
+          if (term.length === 1) {
+            // For single character, use prefix wildcard only
+            lunrQuery = `${term}* ${term}~1`;
+          } else if (term.length === 2) {
+            // For 2 characters, use prefix and fuzzy
+            lunrQuery = `${term}* ${term} ${term}~1`;
+          } else {
+            // For 3+ characters, use all matching strategies
+            lunrQuery = `${term}^10 ${term}* ${term}~1`;
+          }
+        } else {
+          // Multiple terms: combine with wildcards
+          lunrQuery = terms
+            .map(term => `${term}^2 ${term}*`)
+            .join(' ');
+        }
+        
+        console.log('Lunr query:', lunrQuery);
+        const results = searchIndex.search(lunrQuery);
         console.log('Search results:', results.length);
+        
         const docMap = new Map(docs.map(d => [d.id, d]));
         
         return results.map(result => {
@@ -156,7 +185,8 @@ export function useLazySearch(docs: LegalDocNorm[]) {
 
       } catch (error) {
         console.error('Search failed:', error);
-        return [];
+        // Fallback to simple search on error
+        return simpleSearch(query);
       }
     };
   }, [searchIndex, docs]);

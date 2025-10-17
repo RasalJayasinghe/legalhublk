@@ -29,8 +29,13 @@ def write_catalog_and_latest(items: List[dict], out_dir: str, latest_n=100):
 def dedupe_by_url(items: List[dict]) -> List[dict]:
     by: Dict[str, dict] = {}
     for d in items:
-        key = d.get("pdf_url") or d.get("detail_url")
-        if not key: continue
+        # Prefer common keys; fall back to 'url' used by our scrapers
+        key = d.get("pdf_url") or d.get("detail_url") or d.get("url")
+        if not key:
+            # Last resort fallbacks seen in some sources
+            key = d.get("pdf") or d.get("href")
+        if not key:
+            continue
         old = by.get(key)
         if not old or d.get("date","") > old.get("date",""):
             by[key] = d

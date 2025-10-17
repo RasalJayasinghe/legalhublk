@@ -19,7 +19,10 @@ export function useLazySearch(docs: LegalDocNorm[]) {
   // Build search index lazily with Web Worker
   const buildSearchIndex = useMemo(() => {
     return async () => {
-      if (docs.length === 0 || searchIndex || isIndexing) return;
+      if (docs.length === 0 || searchIndex || isIndexing) {
+        console.log('Search index build skipped:', { docsCount: docs.length, hasIndex: !!searchIndex, isIndexing });
+        return;
+      }
       
       setIsIndexing(true);
       setIndexingProgress(0);
@@ -111,6 +114,7 @@ export function useLazySearch(docs: LegalDocNorm[]) {
   // Auto-build index when docs are loaded
   useEffect(() => {
     if (docs.length > 0 && !searchIndex && !isIndexing) {
+      console.log('Starting search index build for', docs.length, 'documents');
       buildSearchIndex();
     }
   }, [docs.length, searchIndex, isIndexing, buildSearchIndex]);
@@ -118,10 +122,15 @@ export function useLazySearch(docs: LegalDocNorm[]) {
   // Search function
   const search = useMemo(() => {
     return (query: string): SearchResult[] => {
-      if (!searchIndex || !query.trim()) return [];
+      if (!searchIndex || !query.trim()) {
+        console.log('Search skipped:', { hasIndex: !!searchIndex, query: query.trim() });
+        return [];
+      }
 
       try {
+        console.log('Searching for:', query.trim());
         const results = searchIndex.search(query.trim());
+        console.log('Search results:', results.length);
         const docMap = new Map(docs.map(d => [d.id, d]));
         
         return results.map(result => {

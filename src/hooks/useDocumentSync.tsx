@@ -72,8 +72,11 @@ const LOCAL_DATA_URLS = [
   '/data/all/latest.json' // Merged structure
 ];
 
-// Currently no working remote URLs - data should be generated locally by GitHub Actions
-const REMOTE_DATA_URLS: string[] = [];
+// Remote fallback URLs (GitHub raw) used if local files are stale or missing
+const REMOTE_DATA_URLS: string[] = [
+  'https://raw.githubusercontent.com/yalasinghe/legalhublk/main/public/data/all/latest.json',
+  'https://raw.githubusercontent.com/yalasinghe/legalhublk/main/public/data/gazettes/latest.json'
+];
 
 const SYNC_INTERVAL = 60 * 60 * 1000; // 1 hour
 const STORAGE_KEYS = {
@@ -199,7 +202,8 @@ async function fetchRemoteDocuments(
   onProgress?.("Fetching remote documents...", 10);
   
   const stats = { fetched: 0, processed: 0, filtered: 0 };
-  
+  const allDocs: LegalDocNorm[] = [];
+
   for (const url of REMOTE_DATA_URLS) {
     try {
       const cacheBustUrl = `${url}?t=${Date.now()}`;
@@ -208,48 +212,41 @@ async function fetchRemoteDocuments(
         cache: "no-store",
         mode: "cors",
       });
-      
       if (!response.ok) continue;
-      
-      onProgress?.("Processing document data...", 30);
-      
       const data = await response.json();
-      const rawDocs: LegalDocRaw[] = Array.isArray(data) ? data : data?.items || data?.docs || [];
-      
-      stats.fetched = rawDocs.length;
-      onProgress?.("Normalizing documents...", 50);
-      
-      const docs: LegalDocNorm[] = [];
-      
-      for (let i = 0; i < rawDocs.length; i++) {
-        const normalized = normalize(rawDocs[i]);
-        if (normalized) {
-          docs.push(normalized);
-          stats.processed++;
-        } else {
-          stats.filtered++;
-        }
-        
-        if (i % 1000 === 0) {
-          onProgress?.("Processing documents...", 50 + (i / rawDocs.length) * 40, i, rawDocs.length);
-        }
+      const docs: any[] = data?.documents || [];
+      // Use as-is if already normalized; map to LegalDocNorm shape
+      for (const d of docs) {
+        const norm: LegalDocNorm = {
+          id: d.id,
+          title: d.title || d.description || 'Untitled',
+          date: d.date,
+          type: d.type || d.doc_type_name || 'Document',
+          summary: d.summary || d.description || '',
+          pdfUrl: d.pdf_url || d.pdfUrl || '',
+          rawTypeName: d.rawTypeName || d.doc_type_name || '',
+          languages: d.languages,
+          source: d.source,
+          detail_url: d.detail_url,
+          pdf_url: d.pdf_url,
+        };
+        allDocs.push(norm);
       }
-      
-      onProgress?.("Finalizing...", 95);
-      
-      // Sort by date (newest first)
-      docs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      onProgress?.("Complete", 100);
-      
-      return { docs, stats };
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      console.warn('Remote fetch failed for', url, error);
       continue;
     }
   }
-  
-  throw new Error('Failed to fetch documents from any source');
+
+  if (allDocs.length > 0) {
+    stats.fetched = allDocs.length;
+    stats.processed = allDocs.length;
+    const sorted = allDocs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    onProgress?.("Complete", 100);
+    return { docs: sorted, stats };
+  }
+
+  throw new Error('Failed to fetch documents from any remote source');
 }
 
 async function fetchDocuments(
@@ -258,23 +255,32 @@ async function fetchDocuments(
   onProgress?.("Checking local data...", 5);
   
   // Try local files first (from GitHub Actions sync)
-  const { catalog, latest } = await fetchLocalDocuments();
+  const { catalog } = await fetchLocalDocuments();
   
   if (catalog.length > 0) {
-    onProgress?.("Using local data", 100);
-    const stats = { 
-      fetched: catalog.length, 
-      processed: catalog.length, 
-      filtered: 0 
-    };
-    return { docs: catalog, stats };
+    // Determine staleness: if newest doc is older than Jan 1, 2025
+    const newest = catalog[0]?.date ? new Date(catalog[0].date) : null;
+    const stale = !newest || newest < new Date('2025-01-01');
+    if (!stale) {
+      onProgress?.("Using local data", 100);
+      const stats = { 
+        fetched: catalog.length, 
+        processed: catalog.length, 
+        filtered: 0 
+      };
+      return { docs: catalog, stats };
+    }
   }
   
-  // No remote sources available - return empty data
-  console.log('Local data not available. Data will be generated when GitHub Actions run.');
-  
-  const stats = { fetched: 0, processed: 0, filtered: 0 };
-  return { docs: [], stats };
+  // Fallback to remote raw data (GitHub) if local missing or stale
+  try {
+    const { docs, stats } = await fetchRemoteDocuments(onProgress);
+    return { docs, stats };
+  } catch {
+    // No remote sources available - return whatever local we had or empty
+    const stats = { fetched: catalog.length, processed: catalog.length, filtered: 0 };
+    return { docs: catalog, stats };
+  }
 }
 
 function getSeenIds(): Set<string> {

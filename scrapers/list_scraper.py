@@ -28,7 +28,7 @@ def crawl(kind: str):
     cfg = SOURCES[kind]
     rows = []
     for seed in cfg["seed_urls"]:
-        rows.extend(_extract_pdf_items(seed, cfg["row_selector"], type_label=kind[:-1].capitalize() if kind.endswith('s') else kind.capitalize(), raw=kind))
+        rows.extend(_extract_pdf_items(seed, cfg["row_selector"], type_label=kind[:-1].capitalize() if kind.endswith('s') else kind.capitalize(), raw_name=kind))
         time.sleep(1)
     return dedupe_by_url(rows)
 

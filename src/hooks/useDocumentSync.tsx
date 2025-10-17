@@ -79,9 +79,10 @@ const REMOTE_DATA_URLS: string[] = [
 ];
 
 const SYNC_INTERVAL = 60 * 60 * 1000; // 1 hour
+const CACHE_VERSION = 'v2_2025'; // Increment to force cache refresh
 const STORAGE_KEYS = {
-  DOCS: 'lh_documents_cache',
-  LAST_SYNC: 'lh_last_sync',
+  DOCS: `lh_documents_cache_${CACHE_VERSION}`,
+  LAST_SYNC: `lh_last_sync_${CACHE_VERSION}`,
   SEEN_IDS: 'lh_seen_ids',
   DOCUMENT_COUNT: 'lh_document_count'
 };

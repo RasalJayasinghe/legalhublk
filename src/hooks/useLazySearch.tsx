@@ -15,12 +15,17 @@ export function useLazySearch(docs: LegalDocNorm[]) {
   const [isIndexing, setIsIndexing] = useState(false);
   const [indexingProgress, setIndexingProgress] = useState(0);
   const workerRef = useRef<Worker | null>(null);
+  const lastIndexedCountRef = useRef<number>(0);
 
   // Build search index lazily with Web Worker
   const buildSearchIndex = useMemo(() => {
     return async () => {
-      if (docs.length === 0 || searchIndex || isIndexing) {
+      if (docs.length === 0 || isIndexing) {
         console.log('Search index build skipped:', { docsCount: docs.length, hasIndex: !!searchIndex, isIndexing });
+        return;
+      }
+      if (searchIndex && lastIndexedCountRef.current >= docs.length) {
+        console.log('Search index up-to-date. Skipping rebuild.', { indexed: lastIndexedCountRef.current, current: docs.length });
         return;
       }
       
@@ -39,14 +44,17 @@ export function useLazySearch(docs: LegalDocNorm[]) {
               const index = lunr(function () {
                 this.metadataWhitelist = ["position"];
                 this.ref("id");
-                this.field("title");
-                this.field("summary");
-                this.field("type");
+                // Boost important fields and disable stemming for better partial matches
+                this.pipeline.remove(lunr.stemmer);
+                this.searchPipeline.remove(lunr.stemmer);
+                this.field("title", { boost: 5 });
+                this.field("summary", { boost: 1 });
+                this.field("type", { boost: 2 });
                 
                 docs.forEach((doc, i) => {
                   this.add(doc);
-                  if (i % 1000 === 0) {
-                    self.postMessage({ type: 'progress', progress: (i / docs.length) * 100 });
+                  if (i % 200 === 0) {
+                    self.postMessage({ type: 'progress', progress: ((i + 1) / docs.length) * 100 });
                   }
                 });
               });
@@ -80,6 +88,7 @@ export function useLazySearch(docs: LegalDocNorm[]) {
               setSearchIndex(index);
               setIsIndexing(false);
               setIndexingProgress(100);
+              lastIndexedCountRef.current = docs.length;
               worker.terminate();
               URL.revokeObjectURL(workerUrl);
               resolve();
@@ -119,6 +128,15 @@ export function useLazySearch(docs: LegalDocNorm[]) {
     }
   }, [docs.length, searchIndex, isIndexing, buildSearchIndex]);
 
+  // Rebuild index when dataset grows
+  useEffect(() => {
+    if (docs.length > lastIndexedCountRef.current && !isIndexing) {
+      console.log('Docs increased, rebuilding search index', { from: lastIndexedCountRef.current, to: docs.length });
+      setSearchIndex(null);
+      buildSearchIndex();
+    }
+  }, [docs.length, isIndexing, buildSearchIndex]);
+
   // Search function with enhanced query handling
   const search = useMemo(() => {
     return (query: string): SearchResult[] => {
@@ -131,33 +149,23 @@ export function useLazySearch(docs: LegalDocNorm[]) {
         const trimmedQuery = query.trim();
         console.log('Searching for:', trimmedQuery);
         
-        // Build a more flexible search query
-        // For single words: add wildcard and boost exact matches
-        const terms = trimmedQuery.toLowerCase().split(/\s+/);
-        let lunrQuery = '';
+        // Sanitize and split terms
+        const sanitized = trimmedQuery.replace(/[~*^:\\/+\-]/g, ' ').toLowerCase();
+        const terms = sanitized.split(/\s+/).filter(Boolean);
+        if (terms.length === 0) return [];
         
-        if (terms.length === 1 && terms[0].length > 0) {
-          // Single term: try exact, prefix wildcard, and fuzzy matching
-          const term = terms[0];
-          if (term.length === 1) {
-            // For single character, use prefix wildcard only
-            lunrQuery = `${term}* ${term}~1`;
-          } else if (term.length === 2) {
-            // For 2 characters, use prefix and fuzzy
-            lunrQuery = `${term}* ${term} ${term}~1`;
-          } else {
-            // For 3+ characters, use all matching strategies
-            lunrQuery = `${term}^10 ${term}* ${term}~1`;
-          }
-        } else {
-          // Multiple terms: combine with wildcards
-          lunrQuery = terms
-            .map(term => `${term}^2 ${term}*`)
-            .join(' ');
-        }
-        
-        console.log('Lunr query:', lunrQuery);
-        const results = searchIndex.search(lunrQuery);
+        // Use query builder with leading+trailing wildcards and optional fuzzy
+        const results = searchIndex.query(q => {
+          const wildcard = lunr.Query.wildcard.LEADING | lunr.Query.wildcard.TRAILING;
+          terms.forEach(term => {
+            q.term(term, { fields: ['title'], boost: 8, wildcard, presence: lunr.Query.presence.SHOULD });
+            q.term(term, { fields: ['summary'], boost: 2, wildcard, presence: lunr.Query.presence.SHOULD });
+            q.term(term, { fields: ['type'], boost: 1, wildcard, presence: lunr.Query.presence.SHOULD });
+            if (term.length >= 4) {
+              q.term(term, { fields: ['title','summary'], editDistance: 1, presence: lunr.Query.presence.SHOULD });
+            }
+          });
+        });
         console.log('Search results:', results.length);
         
         const docMap = new Map(docs.map(d => [d.id, d]));

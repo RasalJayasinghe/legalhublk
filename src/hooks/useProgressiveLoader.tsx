@@ -5,6 +5,13 @@ import type { LegalDocRaw, LegalDocNorm } from './useDocumentSync';
 const CHUNK_SIZE = 1000;
 const INITIAL_LOAD_SIZE = 50;
 
+// Versioned cache keys to avoid stale caches
+const PROG_CACHE_VERSION = 'v1_2025_all';
+const PROG_KEYS = {
+  DOCS: `lh_documents_cache_progressive_${PROG_CACHE_VERSION}`,
+  LAST_SYNC: `lh_last_sync_progressive_${PROG_CACHE_VERSION}`
+};
+
 export interface ProgressiveLoaderState {
   docs: LegalDocNorm[];
   loading: boolean;
@@ -136,8 +143,8 @@ export function useProgressiveLoader() {
 
     try {
       // Check cache first
-      const cachedData = localStorage.getItem('lh_documents_cache_progressive');
-      const lastSync = localStorage.getItem('lh_last_sync');
+      const cachedData = localStorage.getItem(PROG_KEYS.DOCS);
+      const lastSync = localStorage.getItem(PROG_KEYS.LAST_SYNC);
       const now = Date.now();
       const HOUR = 60 * 60 * 1000;
 
@@ -260,14 +267,14 @@ export function useProgressiveLoader() {
             try {
               // Cache all documents with smart chunking
               const cacheData = sorted; // Cache all documents
-              localStorage.setItem('lh_documents_cache_progressive', JSON.stringify(cacheData));
-              localStorage.setItem('lh_last_sync', new Date().toISOString());
+              localStorage.setItem(PROG_KEYS.DOCS, JSON.stringify(cacheData));
+              localStorage.setItem(PROG_KEYS.LAST_SYNC, new Date().toISOString());
             } catch (error) {
               console.warn('Could not cache documents due to storage quota:', error.message);
               // Clear any existing cache if quota exceeded
               try {
-                localStorage.removeItem('lh_documents_cache_progressive');
-                localStorage.removeItem('lh_last_sync');
+                localStorage.removeItem(PROG_KEYS.DOCS);
+                localStorage.removeItem(PROG_KEYS.LAST_SYNC);
               } catch {}
             }
 

@@ -12,7 +12,7 @@ import { Brand } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ShareButton } from '@/components/share-button';
 import { PricingSection } from '@/components/pricing-section';
-import partnersHero from '@/assets/partners-hero.png';
+import { HeroSectionDark } from '@/components/hero-section-dark';
 
 export default function Partners() {
   const [formData, setFormData] = useState({
@@ -61,28 +61,17 @@ export default function Partners() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-muted/20">
-        {/* Full-width Hero Image */}
-        <div className="w-full">
-          <img 
-            src={partnersHero} 
-            alt="Partner with LegalHub - Empower the Future of Legal Research" 
-            className="w-full h-auto object-cover"
-          />
-        </div>
-        
-        {/* Subtitle */}
-        <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="text-center max-w-3xl mx-auto">
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              We collaborate with forward-thinking law firms to bring Sri Lanka's legal knowledge online.
-            </p>
-          </div>
-        </div>
-      </section>
+      <HeroSectionDark 
+        onApplyClick={() => {
+          document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' });
+        }}
+        onLearnMoreClick={() => {
+          document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
 
       {/* Benefits Section */}
-      <section className="py-12 md:py-16 bg-muted/30">
+      <section id="benefits" className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-foreground">Partner Benefits</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -141,7 +130,7 @@ export default function Partners() {
       <PricingSection />
 
       {/* Application Form Section */}
-      <section className="py-12 md:py-16">
+      <section id="application-form" className="py-12 md:py-16">
         <div className="container mx-auto px-4 max-w-3xl">
           <Card>
             <CardHeader>

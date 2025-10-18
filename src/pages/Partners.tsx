@@ -64,8 +64,8 @@ export default function Partners() {
       <HeroSection
         title="Partner with LegalHub"
         subtitle={{
-          regular: "Empower the Future of ",
-          gradient: "Legal Research in Sri Lanka",
+          regular: "Partner with LegalHub ",
+          gradient: "Empower the Future of Legal Research",
         }}
         description="We collaborate with forward-thinking law firms to bring Sri Lanka's legal knowledge online. Join us in building the future of legal technology."
         ctaText="Apply to Partner"
@@ -74,8 +74,8 @@ export default function Partners() {
         }}
         gridOptions={{
           angle: 65,
-          opacity: 0.3,
-          cellSize: 60,
+          opacity: 0.4,
+          cellSize: 50,
           lightLineColor: "#4a4a4a",
           darkLineColor: "#7209B7",
         }}

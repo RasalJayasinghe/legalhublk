@@ -11,6 +11,7 @@ import { CheckCircle2, Upload, DollarSign, Award, BarChart3 } from 'lucide-react
 import { Brand } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ShareButton } from '@/components/share-button';
+import { PricingSection } from '@/components/pricing-section';
 import partnersHero from '@/assets/partners-hero.png';
 
 export default function Partners() {
@@ -135,6 +136,9 @@ export default function Partners() {
           </div>
         </div>
       </section>
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* Application Form Section */}
       <section className="py-12 md:py-16">

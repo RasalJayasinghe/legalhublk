@@ -12,7 +12,7 @@ import { Brand } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ShareButton } from '@/components/share-button';
 import { PricingSection } from '@/components/pricing-section';
-import { HeroSectionDark } from '@/components/hero-section-dark';
+import { HeroSection } from '@/components/ui/hero-section-dark';
 
 export default function Partners() {
   const [formData, setFormData] = useState({
@@ -61,12 +61,23 @@ export default function Partners() {
       </nav>
 
       {/* Hero Section */}
-      <HeroSectionDark 
-        onApplyClick={() => {
+      <HeroSection
+        title="Partner with LegalHub"
+        subtitle={{
+          regular: "Empower the Future of ",
+          gradient: "Legal Research in Sri Lanka",
+        }}
+        description="We collaborate with forward-thinking law firms to bring Sri Lanka's legal knowledge online. Join us in building the future of legal technology."
+        ctaText="Apply to Partner"
+        onCtaClick={() => {
           document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' });
         }}
-        onLearnMoreClick={() => {
-          document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' });
+        gridOptions={{
+          angle: 65,
+          opacity: 0.3,
+          cellSize: 60,
+          lightLineColor: "#4a4a4a",
+          darkLineColor: "#7209B7",
         }}
       />
 

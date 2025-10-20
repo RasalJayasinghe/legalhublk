@@ -23,6 +23,7 @@ import { TypewriterInput } from "@/components/typewriter-input";
 import { InterestPopup } from "@/components/interest-popup";
 import { SyncStatus } from "@/components/sync-status";
 import { NewDocumentsBanner } from "@/components/new-documents-banner";
+import { PartnerBanner } from "@/components/partner-banner";
 import { useDocumentSync, type LegalDocNorm } from "@/hooks/useDocumentSync";
 import { useProgressiveLoader } from "@/hooks/useProgressiveLoader";
 import { useLazySearch } from "@/hooks/useLazySearch";
@@ -95,6 +96,10 @@ const Index = () => {
 
   // Sort mode
   const [sortMode, setSortMode] = useState<"newest" | "relevance">("newest");
+
+  // Partner banner state
+  const [showPartnerBanner, setShowPartnerBanner] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   // URL search params
   const [searchParams, setSearchParams] = useSearchParams();
@@ -372,6 +377,47 @@ const Index = () => {
     return Math.floor((Date.now() - siteStartTime) / 1000);
   };
 
+  // Partner banner logic - show after 500px scroll + 10s on site
+  useEffect(() => {
+    // Check if user has visited partners page
+    const visitedPartners = localStorage.getItem('lh_visited_partners');
+    if (visitedPartners) return;
+
+    // Check if banner was dismissed
+    const bannerDismissed = localStorage.getItem('lh_partner_banner_dismissed');
+    if (bannerDismissed) {
+      const dismissedTime = parseInt(bannerDismissed);
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      if (dismissedTime > thirtyDaysAgo) return;
+    }
+
+    const onScroll = () => {
+      if (window.scrollY > 500) {
+        setHasScrolled(true);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (hasScrolled) {
+      const seconds = Math.floor((Date.now() - siteStartTime) / 1000);
+      if (seconds >= 10) {
+        setShowPartnerBanner(true);
+      } else {
+        const timer = setTimeout(() => setShowPartnerBanner(true), (10 - seconds) * 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [hasScrolled, siteStartTime]);
+
+  const handleDismissPartnerBanner = () => {
+    setShowPartnerBanner(false);
+    localStorage.setItem('lh_partner_banner_dismissed', Date.now().toString());
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50">
@@ -612,13 +658,22 @@ const Index = () => {
                   </Popover>
                 </div>
 
-                {/* Latest Link */}
-                <Link 
-                  to="/latest" 
-                  className="text-sm text-primary hover:underline whitespace-nowrap self-center"
-                >
-                  Latest →
-                </Link>
+                {/* Latest & Partners Links */}
+                <div className="flex items-center gap-3">
+                  <Link 
+                    to="/latest" 
+                    className="text-sm text-primary hover:underline whitespace-nowrap"
+                  >
+                    Latest →
+                  </Link>
+                  <Link 
+                    to="/partners" 
+                    className="text-sm text-primary hover:underline whitespace-nowrap"
+                    onClick={() => localStorage.setItem('lh_visited_partners', 'true')}
+                  >
+                    Partners
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -828,6 +883,9 @@ const Index = () => {
         onClose={handleCloseInterestPopup}
         timeOnSite={getTimeOnSite()}
       />
+
+      {/* Partner Banner */}
+      {showPartnerBanner && <PartnerBanner onDismiss={handleDismissPartnerBanner} />}
     </div>
   );
 };

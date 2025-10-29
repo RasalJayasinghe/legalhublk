@@ -14,16 +14,372 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      document_views: {
+        Row: {
+          document_id: string
+          id: string
+          ip_address: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          document_id: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          document_id?: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_views_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "partner_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_applications: {
+        Row: {
+          address: string | null
+          contact_person: string
+          created_at: string
+          email: string
+          firm_name: string
+          firm_size: string | null
+          id: string
+          message: string | null
+          partnership_type: string
+          phone: string | null
+          practice_areas: string[]
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          website: string | null
+          years_in_practice: number | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person: string
+          created_at?: string
+          email: string
+          firm_name: string
+          firm_size?: string | null
+          id?: string
+          message?: string | null
+          partnership_type: string
+          phone?: string | null
+          practice_areas: string[]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          years_in_practice?: number | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string
+          created_at?: string
+          email?: string
+          firm_name?: string
+          firm_size?: string | null
+          id?: string
+          message?: string | null
+          partnership_type?: string
+          phone?: string | null
+          practice_areas?: string[]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          years_in_practice?: number | null
+        }
+        Relationships: []
+      }
+      partner_documents: {
+        Row: {
+          access_level: string
+          category: string | null
+          created_at: string
+          description: string | null
+          document_type: string
+          downloads_count: number
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          is_premium: boolean
+          partner_id: string
+          preview_image_url: string | null
+          published_at: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          access_level?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          document_type: string
+          downloads_count?: number
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          is_premium?: boolean
+          partner_id: string
+          preview_image_url?: string | null
+          published_at?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          access_level?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          downloads_count?: number
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          is_premium?: boolean
+          partner_id?: string
+          preview_image_url?: string | null
+          published_at?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_documents_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_profiles: {
+        Row: {
+          address: string | null
+          commission_rate: number
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          firm_name: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          practice_areas: string[]
+          total_documents: number
+          total_revenue: number
+          total_views: number
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          commission_rate?: number
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          firm_name: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          practice_areas: string[]
+          total_documents?: number
+          total_revenue?: number
+          total_views?: number
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          commission_rate?: number
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          firm_name?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          practice_areas?: string[]
+          total_documents?: number
+          total_revenue?: number
+          total_views?: number
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          billing_period: string
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          max_documents: number | null
+          name: string
+          price: number
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_period: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_documents?: number | null
+          name: string
+          price: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_period?: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_documents?: number | null
+          name?: string
+          price?: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end: string
+          current_period_start?: string
+          id?: string
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "partner" | "pro_user" | "free_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +506,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "partner", "pro_user", "free_user"],
+    },
   },
 } as const

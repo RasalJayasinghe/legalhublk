@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,38 +7,104 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { CheckCircle2, Upload, DollarSign, Award, BarChart3 } from 'lucide-react';
+import { CheckCircle2, Upload, DollarSign, Award, BarChart3, User, LogOut } from 'lucide-react';
 import { Brand } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ShareButton } from '@/components/share-button';
 import { PricingSection } from '@/components/pricing-section';
 import { HeroSection } from '@/components/ui/hero-section-dark';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Partners() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
     firmName: '',
     contactName: '',
-    email: '',
+    email: user?.email || '',
+    phone: '',
+    address: '',
     website: '',
     firmSize: '',
-    practiceAreas: '',
+    practiceAreas: [] as string[],
     partnershipType: '',
-    monthlyUploads: '',
-    whyPartner: '',
+    yearsInPractice: '',
+    message: '',
     agreeTerms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user?.email) {
+      setFormData(prev => ({ ...prev, email: user.email || '' }));
+    }
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast.error('Please sign in to submit your application');
+      navigate('/auth');
+      return;
+    }
     
     if (!formData.agreeTerms) {
       toast.error('Please agree to the terms and conditions');
       return;
     }
 
-    // TODO: Implement actual form submission
-    toast.success('Application submitted successfully! We\'ll be in touch soon.');
-    console.log('Partner application:', formData);
+    if (formData.practiceAreas.length === 0) {
+      toast.error('Please select at least one practice area');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.from('partner_applications').insert({
+        user_id: user.id,
+        firm_name: formData.firmName,
+        contact_person: formData.contactName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        website: formData.website,
+        firm_size: formData.firmSize,
+        practice_areas: formData.practiceAreas,
+        partnership_type: formData.partnershipType,
+        years_in_practice: formData.yearsInPractice ? parseInt(formData.yearsInPractice) : null,
+        message: formData.message
+      });
+
+      if (error) throw error;
+
+      toast.success('Application submitted successfully! We\'ll review it and be in touch soon.');
+      
+      // Reset form
+      setFormData({
+        firmName: '',
+        contactName: '',
+        email: user.email || '',
+        phone: '',
+        address: '',
+        website: '',
+        firmSize: '',
+        practiceAreas: [],
+        partnershipType: '',
+        yearsInPractice: '',
+        message: '',
+        agreeTerms: false
+      });
+    } catch (error: any) {
+      console.error('Error submitting application:', error);
+      toast.error(error.message || 'Failed to submit application. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: string, value: any) => {
@@ -55,6 +121,27 @@ export default function Partners() {
             <div className="flex items-center gap-2">
               <ShareButton />
               <ThemeToggle />
+              {user ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => signOut()}
+                  className="gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/auth')}
+                  className="gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -201,6 +288,29 @@ export default function Partners() {
                   />
                 </div>
 
+                {/* Phone and Address */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleChange('phone', e.target.value)}
+                      placeholder="+94 11 234 5678"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address (Optional)</Label>
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => handleChange('address', e.target.value)}
+                      placeholder="Colombo, Sri Lanka"
+                    />
+                  </div>
+                </div>
+
                 {/* Firm Size */}
                 <div className="space-y-2">
                   <Label htmlFor="firmSize">Firm Size / Team Members *</Label>
@@ -219,8 +329,8 @@ export default function Partners() {
                   <Input
                     id="practiceAreas"
                     required
-                    value={formData.practiceAreas}
-                    onChange={(e) => handleChange('practiceAreas', e.target.value)}
+                    value={formData.practiceAreas.join(', ')}
+                    onChange={(e) => handleChange('practiceAreas', e.target.value.split(',').map(s => s.trim()))}
                     placeholder="Corporate Law, IP Law, Taxation"
                   />
                 </div>
@@ -244,25 +354,26 @@ export default function Partners() {
                   </Select>
                 </div>
 
-                {/* Expected Monthly Uploads */}
+                {/* Years in Practice */}
                 <div className="space-y-2">
-                  <Label htmlFor="monthlyUploads">Expected Monthly Uploads (Optional)</Label>
+                  <Label htmlFor="yearsInPractice">Years in Practice (Optional)</Label>
                   <Input
-                    id="monthlyUploads"
-                    value={formData.monthlyUploads}
-                    onChange={(e) => handleChange('monthlyUploads', e.target.value)}
-                    placeholder="5-10 documents"
+                    id="yearsInPractice"
+                    type="number"
+                    value={formData.yearsInPractice}
+                    onChange={(e) => handleChange('yearsInPractice', e.target.value)}
+                    placeholder="10"
                   />
                 </div>
 
-                {/* Why Partner */}
+                {/* Message */}
                 <div className="space-y-2">
-                  <Label htmlFor="whyPartner">Why do you want to partner with LegalHub? *</Label>
+                  <Label htmlFor="message">Why do you want to partner with LegalHub? *</Label>
                   <Textarea
-                    id="whyPartner"
+                    id="message"
                     required
-                    value={formData.whyPartner}
-                    onChange={(e) => handleChange('whyPartner', e.target.value)}
+                    value={formData.message}
+                    onChange={(e) => handleChange('message', e.target.value)}
                     placeholder="Tell us about your motivation and goals..."
                     rows={4}
                   />
@@ -285,10 +396,20 @@ export default function Partners() {
                 </div>
 
                 {/* Submit Button */}
-                <Button type="submit" size="lg" className="w-full mt-2">
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full mt-2" 
+                  disabled={isSubmitting || !user}
+                >
                   <CheckCircle2 className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                  Submit Application
+                  {!user ? 'Sign in to Submit Application' : isSubmitting ? 'Submitting...' : 'Submit Application'}
                 </Button>
+                {!user && (
+                  <p className="text-sm text-center text-muted-foreground mt-2">
+                    You need to <button type="button" onClick={() => navigate('/auth')} className="text-primary hover:underline">sign in</button> to submit your application
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>

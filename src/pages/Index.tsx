@@ -16,6 +16,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ShareButton } from "@/components/share-button";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { DocumentSkeleton } from "@/components/document-skeleton";
 import { LoadingProgress } from "@/components/loading-progress";
 import { Brand } from "@/components/brand";
@@ -100,6 +103,9 @@ const Index = () => {
   // Partner banner state
   const [showPartnerBanner, setShowPartnerBanner] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   // URL search params
   const [searchParams, setSearchParams] = useSearchParams();
@@ -447,6 +453,27 @@ const Index = () => {
                 </Button>
                 <ShareButton />
                 <ThemeToggle />
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => signOut()}
+                    className="h-8 w-8 p-0"
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/auth')}
+                    className="h-8 w-8 p-0"
+                    aria-label="Sign in"
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -550,6 +577,27 @@ const Index = () => {
                 />
                 <ShareButton />
                 <ThemeToggle />
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => signOut()}
+                    className="gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/auth')}
+                    className="gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Sign In
+                  </Button>
+                )}
               </div>
             </div>
 

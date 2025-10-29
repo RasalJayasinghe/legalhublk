@@ -326,8 +326,6 @@ const Index = () => {
     localStorage.setItem('lh_banner_dismissed', Date.now().toString());
   };
 
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
-
   // Interest popup state
   const [showInterestPopup, setShowInterestPopup] = useState(false);
   const [siteStartTime] = useState(Date.now());
@@ -428,30 +426,11 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50">
         <div className="container max-w-7xl py-2">
-          {/* Mobile Header - Compact */}
+          {/* Mobile Header - Streamlined */}
           <div className="md:hidden">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <Brand className="shrink-0" />
               <div className="flex items-center gap-2">
-                <SyncStatus
-                  lastUpdated={lastUpdated}
-                  totalDocuments={totalDocuments}
-                  hasNewDocuments={hasNewDocuments}
-                  newDocumentsCount={newDocuments.length}
-                  isLoading={loading}
-                  documentStats={documentStats}
-                  onRefresh={refreshData}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowMobileFilters(!showMobileFilters)}
-                  className="h-8 w-8 p-0"
-                  aria-label="Toggle search and filters"
-                >
-                  {showMobileFilters ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-                </Button>
-                <ShareButton />
                 <ThemeToggle />
                 {user ? (
                   <Button
@@ -477,85 +456,79 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Mobile Expandable Search & Filters */}
-            {showMobileFilters && (
-              <div className="space-y-3 pb-2">
-                {/* Mobile Search Bar */}
-                <TypewriterInput
-                  value={query}
-                  onChange={setQuery}
-                  onPage={setPage}
-                  placeholder="Search documents…"
-                  className="h-9"
-                  inputRef={searchInputRef}
-                />
+            {/* Mobile Search Bar - Always Visible */}
+            <div className="space-y-3 pb-2">
+              <TypewriterInput
+                value={query}
+                onChange={setQuery}
+                onPage={setPage}
+                placeholder="Search gazettes, acts, bills..."
+                className="h-11 text-base"
+                inputRef={searchInputRef}
+              />
 
-                {/* Mobile Filters */}
-                <div className="space-y-2">
-                  {/* Type Filters Dropdown */}
-                  <Select 
-                    value={selectedTypes.length === 1 ? selectedTypes[0] : selectedTypes.length > 1 ? "multiple" : "all"} 
-                    onValueChange={(value) => {
-                      if (value === "all") {
-                        setSelectedTypes([]);
-                      } else if (value === "multiple") {
-                        // Keep current selection
-                        return;
-                      } else {
-                        setSelectedTypes([value as TypeFilter]);
-                      }
-                      setPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="h-8">
-                      <SelectValue placeholder={
-                        selectedTypes.length === 0 ? "All document types" : 
-                        selectedTypes.length === 1 ? selectedTypes[0] :
-                        `${selectedTypes.length} types selected`
-                      } />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All document types</SelectItem>
-                      {DOC_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Date Filter */}
-                  <Select value={dateFilter} onValueChange={(value) => {
-                    setDateFilter(value as "all" | "this-year" | "last-year" | "last-2-years");
-                    // Set date range based on selection
-                    const now = new Date();
-                    const currentYear = now.getFullYear();
-                    if (value === "all") {
-                      setFromDate("");
-                      setToDate("");
-                    } else if (value === "this-year") {
-                      setFromDate(`${currentYear}-01-01`);
-                      setToDate("");
-                    } else if (value === "last-year") {
-                      setFromDate(`${currentYear - 1}-01-01`);
-                      setToDate(`${currentYear - 1}-12-31`);
-                    } else if (value === "last-2-years") {
-                      setFromDate(`${currentYear - 2}-01-01`);
-                      setToDate("");
-                    }
-                    setPage(1);
-                  }}>
-                    <SelectTrigger className="h-8">
-                      <SelectValue placeholder="All dates" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All dates</SelectItem>
-                      <SelectItem value="this-year">This year</SelectItem>
-                      <SelectItem value="last-year">Last year</SelectItem>
-                      <SelectItem value="last-2-years">Last 2 years</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Category Pills - Always Visible */}
+              <div className="flex flex-wrap gap-2">
+                {DOC_TYPES.map((type) => {
+                  const isSelected = selectedTypes.includes(type);
+                  const isNew = type === "Form" || type === "Notice";
+                  return (
+                    <Button
+                      key={type}
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedTypes(selectedTypes.filter(t => t !== type));
+                        } else {
+                          setSelectedTypes([...selectedTypes, type]);
+                        }
+                        setPage(1);
+                      }}
+                      className="h-8 relative"
+                    >
+                      {type}
+                      {isNew && (
+                        <Badge className="absolute -top-1 -right-1 text-[10px] px-1 py-0 h-3 bg-green-600 hover:bg-green-700 pointer-events-none">
+                          NEW
+                        </Badge>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
-            )}
+
+              {/* Date Filter - Compact */}
+              <Select value={dateFilter} onValueChange={(value) => {
+                setDateFilter(value as "all" | "this-year" | "last-year" | "last-2-years");
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                if (value === "all") {
+                  setFromDate("");
+                  setToDate("");
+                } else if (value === "this-year") {
+                  setFromDate(`${currentYear}-01-01`);
+                  setToDate("");
+                } else if (value === "last-year") {
+                  setFromDate(`${currentYear - 1}-01-01`);
+                  setToDate(`${currentYear - 1}-12-31`);
+                } else if (value === "last-2-years") {
+                  setFromDate(`${currentYear - 2}-01-01`);
+                  setToDate("");
+                }
+                setPage(1);
+              }}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="All dates" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All dates</SelectItem>
+                  <SelectItem value="this-year">This year</SelectItem>
+                  <SelectItem value="last-year">Last year</SelectItem>
+                  <SelectItem value="last-2-years">Last 2 years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Desktop Header - Full Layout */}

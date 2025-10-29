@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Latest from "./pages/Latest";
 import Partners from "./pages/Partners";
 import Auth from "./pages/Auth";
+import PartnerPortal from "./pages/PartnerPortal";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/latest" element={<Latest />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/partner-portal" element={<PartnerPortal />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
